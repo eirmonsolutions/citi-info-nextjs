@@ -7,19 +7,19 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import { Autoplay } from "swiper/modules";
 
-const API_URL = "http://127.0.0.1:8000/api";
-const STORAGE_URL = "http://127.0.0.1:8000/storage";
+const API_URL = "http://localhost:8000/api";
+const STORAGE_URL = "http://localhost:8000/storage";
 const FALLBACK_IMAGE = "https://citiinfo.com.au/assets/images/no-image.png";
 const FALLBACK_LOGO = "https://citiinfo.com.au/assets/images/favicon.jpg";
 
-const BusinessListing = () => {
+const BusinessListing = ({ categorySlug = "", categoryName = "" }) => {
   const [listings, setListings] = useState([]);
   const [pagination, setPagination] = useState({});
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("name_asc");
   const [page, setPage] = useState(1);
   const [view, setView] = useState("grid");
-
+  const isCategoryPage = !!categoryName;
   const firstLoad = useRef(true);
 
   const getImageUrl = (path, fallback = FALLBACK_IMAGE) => {
@@ -30,7 +30,7 @@ const BusinessListing = () => {
     if (cleanPath.startsWith("http")) return cleanPath;
 
     if (cleanPath.startsWith("storage/")) {
-      return `http://127.0.0.1:8000/${cleanPath}`;
+      return `http://localhost:8000/${cleanPath}`;
     }
 
     if (cleanPath.startsWith("business/gallery/")) {
@@ -50,7 +50,7 @@ const BusinessListing = () => {
     const cleanLogo = String(item.logo).replace(/^\/+/, "");
 
     if (cleanLogo.startsWith("http")) return cleanLogo;
-    if (cleanLogo.startsWith("storage/")) return `http://127.0.0.1:8000/${cleanLogo}`;
+    if (cleanLogo.startsWith("storage/")) return `http://localhost:8000/${cleanLogo}`;
     if (cleanLogo.startsWith("business/")) return `${STORAGE_URL}/${cleanLogo}`;
 
     return `${STORAGE_URL}/${cleanLogo}`;
@@ -94,7 +94,7 @@ const BusinessListing = () => {
   ) => {
     try {
       const res = await fetch(
-        `${API_URL}/listings?q=${encodeURIComponent(searchValue)}&sort=${sortValue}&page=${pageValue}`,
+        `${API_URL}/listings?q=${encodeURIComponent(searchValue)}&sort=${sortValue}&page=${pageValue}&category_slug=${categorySlug}`,
         { cache: "no-store" }
       );
 
@@ -140,13 +140,19 @@ const BusinessListing = () => {
   return (
     <section className="popular-categories">
       <div className="container">
-        <div className="section-heading">
-          <div className="section-icon">☆</div>
-          <div>
-            <h2>Explore Top Rated Business Listings in Australia</h2>
-            <p>Showing {pagination.total || 0} listings</p>
+        {!isCategoryPage && (
+          <div className="section-heading">
+            <div className="section-icon">☆</div>
+
+            <div className="section-heading-info">
+              <h2>Explore Top Rated Business Listings in Australia</h2>
+
+              <p>
+                Showing {pagination?.total || listings.length} listings
+              </p>
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="category-filter-bar">
           <input

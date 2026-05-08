@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import BusinessListing from "../business-listings/BusinessListing";
 
 const CategoryListingsPage = ({ slug }) => {
     const categoryName = slug
@@ -13,7 +14,6 @@ const CategoryListingsPage = ({ slug }) => {
 
     return (
         <>
-
             <section className="popular-categories-details-area">
                 <div className="breadcrumb-area pb-0">
                     <div className="container">
@@ -41,8 +41,22 @@ const CategoryListingsPage = ({ slug }) => {
                     </div>
                 </div>
             </section>
+
+            <BusinessListing categorySlug={slug} categoryName={categoryName} />
+
+            <style jsx global>{`
+  section.popular-categories-details-area {
+    padding: 10px 0 0 !important;
+  }
+
+  section.popular-categories {
+    padding: 0 0 60px !important;
+  }
+
+`}</style>
         </>
     );
 };
+
 
 export default CategoryListingsPage;

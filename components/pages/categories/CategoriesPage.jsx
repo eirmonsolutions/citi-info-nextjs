@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 
-const API_URL = "http://127.0.0.1:8000/api";
+const API_URL = "http://localhost:8000/api";
 
 const CategoriesPage = () => {
     const getRandomColor = () => {

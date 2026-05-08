@@ -20,7 +20,7 @@ const Categories = async () => {
         return colors[Math.floor(Math.random() * colors.length)];
     };
 
-    const res = await fetch("http://127.0.0.1:8000/api/home-categories", {
+    const res = await fetch("http://localhost:8000/api/home-categories", {
         cache: "no-store",
     });
 
@@ -44,7 +44,7 @@ const Categories = async () => {
                             <div className="popular-cat-icon" style={{ background: getRandomColor() }}>
                                 {cat.categoryimage && (
                                     <img
-                                        src={`http://127.0.0.1:8000/storage/${cat.categoryimage}`}
+                                        src={`http://localhost:8000/storage/${cat.categoryimage}`}
                                         alt={cat.name}
                                         width={40}
                                         height={40}
