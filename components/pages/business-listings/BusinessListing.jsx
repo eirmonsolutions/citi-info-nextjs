@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { Suspense, useEffect, useRef, useState } from "react";
 import { LayoutGrid, List, Heart, Clock, Star, MapPin } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -8,12 +8,20 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import { Autoplay } from "swiper/modules";
 
-const API_URL = "http://localhost:8000/api";
-const STORAGE_URL = "http://localhost:8000/storage";
-const FALLBACK_IMAGE = "https://citiinfo.com.au/assets/images/no-image.png";
-const FALLBACK_LOGO = "https://citiinfo.com.au/assets/images/favicon.jpg";
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL;
 
-const BusinessListing = ({
+const STORAGE_URL =
+  process.env.NEXT_PUBLIC_STORAGE_URL;
+
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL;
+
+const FALLBACK_IMAGE = `${SITE_URL}/assets/images/no-image.png`;
+
+const FALLBACK_LOGO = `${SITE_URL}/assets/images/favicon.jpg`;
+
+const BusinessListingContent = ({
   categorySlug = "",
   categoryName = "",
   limit = 12,
@@ -32,15 +40,20 @@ const BusinessListing = ({
   const isCategoryPage = !!categoryName;
   const firstLoad = useRef(true);
 
-  const searchParams = useSearchParams();
-  const city = searchParams.get("city") || "";
-  const querySearch = searchParams.get("q") || "";
+  const [city, setCity] = useState("");
+  const [querySearch, setQuerySearch] = useState("");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setCity(params.get("city") || "");
+    setQuerySearch(params.get("q") || "");
+  }, []);
 
   const getImageUrl = (path, fallback = FALLBACK_IMAGE) => {
     if (!path) return fallback;
     const cleanPath = String(path).replace(/^\/+/, "");
     if (cleanPath.startsWith("http")) return cleanPath;
-    if (cleanPath.startsWith("storage/")) return `http://localhost:8000/${cleanPath}`;
+    if (cleanPath.startsWith("storage/")) return `${SITE_URL}/${cleanPath}`;
     if (cleanPath.startsWith("business/gallery/")) return `${STORAGE_URL}/${cleanPath}`;
     if (cleanPath.startsWith("business/logo/")) return `${STORAGE_URL}/${cleanPath}`;
     return `${STORAGE_URL}/business/gallery/${cleanPath}`;
@@ -224,7 +237,7 @@ const BusinessListing = ({
                 </div>
               ))
             ) : listings.length > 0 ? (
-              listings.map((item) => {
+              (listings || []).map((item) => {
                 const galleryImages = getGalleryImages(item);
                 const hasGallery = galleryImages.length > 0;
                 const hasMultipleGallery = galleryImages.length > 1;
@@ -411,11 +424,10 @@ const BusinessListing = ({
                   })}
 
                   <li
-                    className={`page-item ${
-                      page === pagination.last_page || !pagination.last_page
-                        ? "disabled"
-                        : ""
-                    }`}
+                    className={`page-item ${page === pagination.last_page || !pagination.last_page
+                      ? "disabled"
+                      : ""
+                      }`}
                   >
                     <button
                       className="page-link"
@@ -436,4 +448,4 @@ const BusinessListing = ({
   );
 };
 
-export default BusinessListing;
+export default BusinessListingContent;

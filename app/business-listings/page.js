@@ -1,7 +1,6 @@
-import React from "react";
+import React, { Suspense } from "react";
 import PageLayout from "@/components/partials/PageLayout";
 import BusinessListing from "@/components/pages/business-listings/BusinessListing";
-
 export const metadata = {
   title: "Business Listings Australia – Find Local Services & Companies",
   description:
@@ -20,7 +19,9 @@ export const metadata = {
 const page = () => {
   return (
     <PageLayout>
-      <BusinessListing />
+      <Suspense fallback={<div>Loading listings...</div>}>
+        <BusinessListing />
+      </Suspense>
     </PageLayout>
   );
 };
