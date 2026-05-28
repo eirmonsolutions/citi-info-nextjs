@@ -6,21 +6,23 @@ import Link from "next/link";
 const API_URL = "http://localhost:8000/api";
 
 const CategoriesPage = () => {
+
     const getRandomColor = () => {
         const colors = [
-            "#4f46e5", // indigo
-            "#16a34a", // green
-            "#db2777", // pink
-            "#f59e0b", // orange
-            "#7c3aed", // purple
-            "#0284c7", // sky
-            "#ca8a04", // yellow dark
-            "#059669", // teal
-            "#be123c", // rose
-            "#9333ea", // violet
-            "#0369a1", // cyan
-            "#475569", // gray
+            "#4f46e5",
+            "#16a34a",
+            "#db2777",
+            "#f59e0b",
+            "#7c3aed",
+            "#0284c7",
+            "#ca8a04",
+            "#059669",
+            "#be123c",
+            "#9333ea",
+            "#0369a1",
+            "#475569",
         ];
+
         return colors[Math.floor(Math.random() * colors.length)];
     };
 
@@ -30,6 +32,9 @@ const CategoriesPage = () => {
     const [sort, setSort] = useState("name_asc");
     const [page, setPage] = useState(1);
 
+    // ✅ Loading State
+    const [loading, setLoading] = useState(true);
+
     const firstLoad = useRef(true);
 
     const fetchCategories = async (
@@ -37,16 +42,24 @@ const CategoriesPage = () => {
         sortValue = sort,
         pageValue = page
     ) => {
+
         try {
+
+            setLoading(true);
+
             const res = await fetch(
                 `${API_URL}/categories?q=${encodeURIComponent(
                     searchValue
-                )}&sort=${sortValue}&page=${pageValue}`
+                )}&sort=${sortValue}&page=${pageValue}`,
+                {
+                    cache: "no-store",
+                }
             );
 
             if (!res.ok) {
                 setCategories([]);
                 setPagination({});
+                setLoading(false);
                 return;
             }
 
@@ -54,19 +67,27 @@ const CategoriesPage = () => {
 
             setCategories(result.data || []);
             setPagination(result.pagination || {});
+
         } catch (error) {
+
             setCategories([]);
             setPagination({});
+
+        } finally {
+
+            setLoading(false);
+
         }
     };
 
-    // First load categories immediately
+    // First load
     useEffect(() => {
         fetchCategories("", "name_asc", 1);
     }, []);
 
-    // Live search with delay
+    // Search
     useEffect(() => {
+
         if (firstLoad.current) {
             firstLoad.current = false;
             return;
@@ -78,27 +99,39 @@ const CategoriesPage = () => {
         }, 350);
 
         return () => clearTimeout(delaySearch);
+
     }, [search]);
 
-    // Sort + pagination
+    // Sort + Pagination
     useEffect(() => {
+
         if (firstLoad.current) return;
 
         fetchCategories(search, sort, page);
+
     }, [sort, page]);
 
     return (
         <section className="popular-categories">
+
             <div className="container">
+
                 <div className="section-heading">
                     <div className="section-icon">☆</div>
+
                     <div>
                         <h2>Browse Business Categories Across Australia</h2>
-                        <p>Showing {pagination.total || 0} categories</p>
+                        <p>
+                            {loading
+                                ? "Loading categories..."
+                                : `Showing ${pagination.total || 0} categories`
+                            }
+                        </p>
                     </div>
                 </div>
 
                 <div className="category-filter-bar">
+
                     <input
                         type="text"
                         placeholder="Search..."
@@ -107,6 +140,7 @@ const CategoriesPage = () => {
                     />
 
                     <div className="right-filter">
+
                         <label htmlFor="sort">Sort By:</label>
 
                         <select
@@ -122,18 +156,45 @@ const CategoriesPage = () => {
                             <option value="date_asc">Date Oldest</option>
                             <option value="date_desc">Date Newest</option>
                         </select>
+
                     </div>
+
                 </div>
 
                 <div className="popular-cat-grid">
-                    {categories.length > 0 ? (
+
+                    {/* ✅ Skeleton Loading */}
+                    {loading ? (
+
+                        [...Array(12)].map((_, index) => (
+
+                            <div className="popular-cat-card" key={index}>
+
+                                <div className="skeleton skeleton-icon"></div>
+
+                                <div className="skeleton skeleton-title"></div>
+
+                                <div className="skeleton skeleton-count"></div>
+
+                            </div>
+
+                        ))
+
+                    ) : categories.length > 0 ? (
+
                         categories.map((cat) => (
+
                             <Link
                                 href={`/categories/${cat.slug}`}
                                 className="popular-cat-card"
                                 key={cat.id}
                             >
-                                <div className="popular-cat-icon" style={{ background: getRandomColor() }}>
+
+                                <div
+                                    className="popular-cat-icon"
+                                    style={{ background: getRandomColor() }}
+                                >
+
                                     {cat.categoryimage_url && (
                                         <img
                                             src={cat.categoryimage_url}
@@ -143,71 +204,96 @@ const CategoriesPage = () => {
                                             style={{ objectFit: "contain" }}
                                         />
                                     )}
+
                                 </div>
 
                                 <h3>{cat.name}</h3>
+
                                 <p>{cat.listings_count} Listings</p>
+
                             </Link>
+
                         ))
+
                     ) : (
+
                         <p>No categories found.</p>
+
                     )}
+
                 </div>
 
-                <div id="paginationWrapper">
-                    <div className="pagination-wrap">
-                        <nav aria-label="Category Pagination">
-                            <ul className="pagination">
+                {!loading && (
+                    <div id="paginationWrapper">
 
-                                {/* Previous */}
-                                <li className={`page-item ${page === 1 ? "disabled" : ""}`}>
-                                    <button
-                                        className="page-link"
-                                        onClick={() => page > 1 && setPage(page - 1)}
-                                    >
-                                        «
-                                    </button>
-                                </li>
+                        <div className="pagination-wrap">
 
-                                {/* Page Numbers */}
-                                {Array.from({ length: pagination.last_page || 1 }).map((_, i) => {
-                                    const pageNumber = i + 1;
+                            <nav aria-label="Category Pagination">
 
-                                    return (
-                                        <li
-                                            key={pageNumber}
-                                            className={`page-item ${page === pageNumber ? "active" : ""}`}
+                                <ul className="pagination">
+
+                                    {/* Previous */}
+                                    <li className={`page-item ${page === 1 ? "disabled" : ""}`}>
+                                        <button
+                                            className="page-link"
+                                            onClick={() => page > 1 && setPage(page - 1)}
                                         >
-                                            <button
-                                                className="page-link"
-                                                onClick={() => setPage(pageNumber)}
+                                            «
+                                        </button>
+                                    </li>
+
+                                    {/* Pages */}
+                                    {Array.from({
+                                        length: pagination.last_page || 1,
+                                    }).map((_, i) => {
+
+                                        const pageNumber = i + 1;
+
+                                        return (
+                                            <li
+                                                key={pageNumber}
+                                                className={`page-item ${page === pageNumber ? "active" : ""
+                                                    }`}
                                             >
-                                                {pageNumber}
-                                            </button>
-                                        </li>
-                                    );
-                                })}
+                                                <button
+                                                    className="page-link"
+                                                    onClick={() => setPage(pageNumber)}
+                                                >
+                                                    {pageNumber}
+                                                </button>
+                                            </li>
+                                        );
+                                    })}
 
-                                {/* Next */}
-                                <li
-                                    className={`page-item ${page === pagination.last_page ? "disabled" : ""
-                                        }`}
-                                >
-                                    <button
-                                        className="page-link"
-                                        onClick={() =>
-                                            page < pagination.last_page && setPage(page + 1)
-                                        }
+                                    {/* Next */}
+                                    <li
+                                        className={`page-item ${page === pagination.last_page
+                                                ? "disabled"
+                                                : ""
+                                            }`}
                                     >
-                                        »
-                                    </button>
-                                </li>
+                                        <button
+                                            className="page-link"
+                                            onClick={() =>
+                                                page < pagination.last_page &&
+                                                setPage(page + 1)
+                                            }
+                                        >
+                                            »
+                                        </button>
+                                    </li>
 
-                            </ul>
-                        </nav>
+                                </ul>
+
+                            </nav>
+
+                        </div>
+
                     </div>
-                </div>
+                )}
+
             </div>
+
         </section>
     );
 };

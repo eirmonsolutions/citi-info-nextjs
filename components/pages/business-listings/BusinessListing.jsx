@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { LayoutGrid, List, Heart, Clock, Star, MapPin } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import { Autoplay } from "swiper/modules";
@@ -12,56 +13,50 @@ const STORAGE_URL = "http://localhost:8000/storage";
 const FALLBACK_IMAGE = "https://citiinfo.com.au/assets/images/no-image.png";
 const FALLBACK_LOGO = "https://citiinfo.com.au/assets/images/favicon.jpg";
 
-const BusinessListing = ({ categorySlug = "", categoryName = "" }) => {
+const BusinessListing = ({
+  categorySlug = "",
+  categoryName = "",
+  limit = 12,
+  hideFilters = false,
+  hidePagination = false,
+  showViewAll = false,
+}) => {
   const [listings, setListings] = useState([]);
   const [pagination, setPagination] = useState({});
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("name_asc");
   const [page, setPage] = useState(1);
   const [view, setView] = useState("grid");
+  const [loading, setLoading] = useState(true);
+
   const isCategoryPage = !!categoryName;
   const firstLoad = useRef(true);
 
+  const searchParams = useSearchParams();
+  const city = searchParams.get("city") || "";
+  const querySearch = searchParams.get("q") || "";
+
   const getImageUrl = (path, fallback = FALLBACK_IMAGE) => {
     if (!path) return fallback;
-
     const cleanPath = String(path).replace(/^\/+/, "");
-
     if (cleanPath.startsWith("http")) return cleanPath;
-
-    if (cleanPath.startsWith("storage/")) {
-      return `http://localhost:8000/${cleanPath}`;
-    }
-
-    if (cleanPath.startsWith("business/gallery/")) {
-      return `${STORAGE_URL}/${cleanPath}`;
-    }
-
-    if (cleanPath.startsWith("business/logo/")) {
-      return `${STORAGE_URL}/${cleanPath}`;
-    }
-
+    if (cleanPath.startsWith("storage/")) return `http://localhost:8000/${cleanPath}`;
+    if (cleanPath.startsWith("business/gallery/")) return `${STORAGE_URL}/${cleanPath}`;
+    if (cleanPath.startsWith("business/logo/")) return `${STORAGE_URL}/${cleanPath}`;
     return `${STORAGE_URL}/business/gallery/${cleanPath}`;
   };
 
   const getLogoUrl = (item) => {
     if (!item.logo) return FALLBACK_LOGO;
-
     const cleanLogo = String(item.logo).replace(/^\/+/, "");
-
     if (cleanLogo.startsWith("http")) return cleanLogo;
     if (cleanLogo.startsWith("storage/")) return `http://localhost:8000/${cleanLogo}`;
     if (cleanLogo.startsWith("business/")) return `${STORAGE_URL}/${cleanLogo}`;
-
     return `${STORAGE_URL}/${cleanLogo}`;
   };
 
   const getGalleryImages = (item) => {
-    // console.log("Getting", item.gallery);
     if (!item.gallery || !Array.isArray(item.gallery)) return [];
-
-
-
     return item.gallery;
   };
 
@@ -93,10 +88,15 @@ const BusinessListing = ({ categorySlug = "", categoryName = "" }) => {
     pageValue = page
   ) => {
     try {
-      const res = await fetch(
-        `${API_URL}/listings?q=${encodeURIComponent(searchValue)}&sort=${sortValue}&page=${pageValue}&category_slug=${categorySlug}`,
-        { cache: "no-store" }
-      );
+      setLoading(true);
+
+      const url = `${API_URL}/listings?q=${encodeURIComponent(
+        searchValue
+      )}&sort=${sortValue}&page=${pageValue}&category_slug=${categorySlug}&city=${encodeURIComponent(
+        city
+      )}&per_page=${limit}`;
+
+      const res = await fetch(url, { cache: "no-store" });
 
       if (!res.ok) {
         setListings([]);
@@ -111,12 +111,16 @@ const BusinessListing = ({ categorySlug = "", categoryName = "" }) => {
     } catch (error) {
       setListings([]);
       setPagination({});
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchListings("", "name_asc", 1);
-  }, []);
+    setSearch(querySearch);
+    setPage(1);
+    fetchListings(querySearch, "name_asc", 1);
+  }, [city, querySearch]);
 
   useEffect(() => {
     if (firstLoad.current) {
@@ -137,82 +141,93 @@ const BusinessListing = ({ categorySlug = "", categoryName = "" }) => {
     fetchListings(search, sort, page);
   }, [sort, page]);
 
+  const noResultText = querySearch || search || city || categoryName || "your search";
+
   return (
     <section className="popular-categories">
       <div className="container">
         {!isCategoryPage && (
           <div className="section-heading">
             <div className="section-icon">☆</div>
-
             <div className="section-heading-info">
               <h2>Explore Top Rated Business Listings in Australia</h2>
-
               <p>
-                Showing {pagination?.total || listings.length} listings
+                {loading
+                  ? "Loading listings..."
+                  : `Showing ${pagination?.total || listings.length} listings`}
               </p>
             </div>
           </div>
         )}
 
-        <div className="category-filter-bar">
-          <input
-            type="text"
-            placeholder="Search business..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+        {!hideFilters && (
+          <div className="category-filter-bar">
+            <input
+              type="text"
+              placeholder="Search business..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
 
-          <div className="right-filter">
-            <label htmlFor="sort">Sort By:</label>
+            <div className="right-filter">
+              <label htmlFor="sort">Sort By:</label>
 
-            <select
-              id="sort"
-              value={sort}
-              onChange={(e) => {
-                setSort(e.target.value);
-                setPage(1);
-              }}
-            >
-              <option value="name_asc">Name (A-Z)</option>
-              <option value="name_desc">Name (Z-A)</option>
-              <option value="date_asc">Date Oldest</option>
-              <option value="date_desc">Date Newest</option>
-            </select>
-
-            <div className="view-switcher">
-              <button
-                type="button"
-                className={view === "grid" ? "active" : ""}
-                onClick={() => setView("grid")}
-                title="Grid View"
+              <select
+                id="sort"
+                value={sort}
+                onChange={(e) => {
+                  setSort(e.target.value);
+                  setPage(1);
+                }}
               >
-                <LayoutGrid size={18} />
-              </button>
+                <option value="name_asc">Name (A-Z)</option>
+                <option value="name_desc">Name (Z-A)</option>
+                <option value="date_asc">Date Oldest</option>
+                <option value="date_desc">Date Newest</option>
+              </select>
 
-              <button
-                type="button"
-                className={view === "list" ? "active" : ""}
-                onClick={() => setView("list")}
-                title="List View"
-              >
-                <List size={18} />
-              </button>
+              <div className="view-switcher">
+                <button
+                  type="button"
+                  className={view === "grid" ? "active" : ""}
+                  onClick={() => setView("grid")}
+                >
+                  <LayoutGrid size={18} />
+                </button>
+
+                <button
+                  type="button"
+                  className={view === "list" ? "active" : ""}
+                  onClick={() => setView("list")}
+                >
+                  <List size={18} />
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         <div className={`listing-area-front ${view === "list" ? "listing-list-view" : ""}`}>
           <div className="row">
-            {listings.length > 0 ? (
+            {loading ? (
+              [...Array(6)].map((_, index) => (
+                <div className="col-md-6 col-lg-6 col-xl-4" key={index}>
+                  <div className="front-listing-box">
+                    <div className="listing-skeleton-img skeleton"></div>
+                    <div className="front-listing-content">
+                      <div className="listing-skeleton-title skeleton"></div>
+                      <div className="listing-skeleton-small skeleton"></div>
+                      <div className="listing-skeleton-review skeleton"></div>
+                      <div className="listing-skeleton-location skeleton"></div>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : listings.length > 0 ? (
               listings.map((item) => {
                 const galleryImages = getGalleryImages(item);
-
-
-
                 const hasGallery = galleryImages.length > 0;
                 const hasMultipleGallery = galleryImages.length > 1;
-
-                console.log("Gallery Images for", hasGallery, hasMultipleGallery);
 
                 return (
                   <div
@@ -226,7 +241,6 @@ const BusinessListing = ({ categorySlug = "", categoryName = "" }) => {
                     <div className="front-listing-box">
                       <div className="front-listing-img">
                         <div className="listing-slider-wrapper">
-                          {console.log("Gallery Images for", item.business_name, hasGallery)}
                           {hasGallery ? (
                             hasMultipleGallery ? (
                               <Swiper
@@ -241,7 +255,6 @@ const BusinessListing = ({ categorySlug = "", categoryName = "" }) => {
                               >
                                 {galleryImages.map((image, index) => (
                                   <SwiperSlide key={index}>
-                                    {console.log("Rendering image for", item.business_name, image)}
                                     <img
                                       src={getImageUrl(image.image_path)}
                                       className="slide-img"
@@ -252,7 +265,6 @@ const BusinessListing = ({ categorySlug = "", categoryName = "" }) => {
                                 ))}
                               </Swiper>
                             ) : (
-
                               <img
                                 src={getImageUrl(galleryImages[0].image_path)}
                                 className="slide-img"
@@ -264,7 +276,7 @@ const BusinessListing = ({ categorySlug = "", categoryName = "" }) => {
                             <img
                               src={FALLBACK_IMAGE}
                               className="slide-img"
-                              alt={item.business_name || "No image"}
+                              alt={item.business_name}
                               loading="lazy"
                             />
                           )}
@@ -273,12 +285,7 @@ const BusinessListing = ({ categorySlug = "", categoryName = "" }) => {
                         <div className="image-overlay"></div>
 
                         <div className="action-buttons">
-                          <button
-                            className="action-btn wishlist-btn"
-                            type="button"
-                            title="Save"
-                            data-business-id={item.id}
-                          >
+                          <button className="action-btn wishlist-btn" type="button">
                             <Heart size={22} />
                           </button>
                         </div>
@@ -319,23 +326,21 @@ const BusinessListing = ({ categorySlug = "", categoryName = "" }) => {
                               src={getLogoUrl(item)}
                               alt={item.business_name}
                               className="testimonial-avatar"
-                              loading="lazy"
                             />
 
                             <div className="testimonial-text">
                               {item.reviews?.length > 0 ? (
                                 <>
-                                  <p>
-                                    "{item.reviews[0].comment || "Great business listing."}"
-                                  </p>
+                                  <p>"{item.reviews[0].comment}"</p>
                                   <span className="testimonial-author">
-                                    {item.reviews[0].name || "Customer Review"}
+                                    {item.reviews[0].name}
                                   </span>
                                 </>
                               ) : (
                                 <>
                                   <p>
-                                    "No reviews yet — be the first to share your experience with {item.business_name}. Your feedback helps others choose with confidence."
+                                    "No reviews yet — be the first to share your
+                                    experience with {item.business_name}."
                                   </p>
                                   <span className="testimonial-author">
                                     No reviews yet
@@ -357,62 +362,75 @@ const BusinessListing = ({ categorySlug = "", categoryName = "" }) => {
               })
             ) : (
               <div className="col-12">
-                <p>No listings found.</p>
+                <div className="listing-empty-alert">
+                  No listings found for <strong>{noResultText}</strong>.
+                </div>
               </div>
             )}
           </div>
         </div>
 
-        <div id="paginationWrapper">
-          <div className="pagination-wrap">
-            <nav aria-label="Category Pagination">
-              <ul className="pagination">
-                <li className={`page-item ${page === 1 ? "disabled" : ""}`}>
-                  <button
-                    className="page-link"
-                    onClick={() => page > 1 && setPage(page - 1)}
-                  >
-                    «
-                  </button>
-                </li>
-
-                {Array.from({ length: pagination.last_page || 1 }).map((_, i) => {
-                  const pageNumber = i + 1;
-
-                  return (
-                    <li
-                      key={pageNumber}
-                      className={`page-item ${page === pageNumber ? "active" : ""}`}
-                    >
-                      <button
-                        className="page-link"
-                        onClick={() => setPage(pageNumber)}
-                      >
-                        {pageNumber}
-                      </button>
-                    </li>
-                  );
-                })}
-
-                <li
-                  className={`page-item ${page === pagination.last_page || !pagination.last_page
-                    ? "disabled"
-                    : ""
-                    }`}
-                >
-                  <button
-                    className="page-link"
-                    onClick={() =>
-                      page < pagination.last_page && setPage(page + 1)
-                    }
-                  >
-                    »
-                  </button>
-                </li>
-              </ul>
-            </nav>
+        {showViewAll && (
+          <div className="text-center mt-4">
+            <Link href="/business-listings" className="view-categories-btn">
+              View All Listings <span>→</span>
+            </Link>
           </div>
-        </div>
+        )}
+
+        {!hideFilters && !loading && listings.length > 0 && (
+          <div id="paginationWrapper">
+            <div className="pagination-wrap">
+              <nav aria-label="Category Pagination">
+                <ul className="pagination">
+                  <li className={`page-item ${page === 1 ? "disabled" : ""}`}>
+                    <button
+                      className="page-link"
+                      onClick={() => page > 1 && setPage(page - 1)}
+                    >
+                      «
+                    </button>
+                  </li>
+
+                  {Array.from({ length: pagination.last_page || 1 }).map((_, i) => {
+                    const pageNumber = i + 1;
+
+                    return (
+                      <li
+                        key={pageNumber}
+                        className={`page-item ${page === pageNumber ? "active" : ""}`}
+                      >
+                        <button
+                          className="page-link"
+                          onClick={() => setPage(pageNumber)}
+                        >
+                          {pageNumber}
+                        </button>
+                      </li>
+                    );
+                  })}
+
+                  <li
+                    className={`page-item ${
+                      page === pagination.last_page || !pagination.last_page
+                        ? "disabled"
+                        : ""
+                    }`}
+                  >
+                    <button
+                      className="page-link"
+                      onClick={() =>
+                        page < pagination.last_page && setPage(page + 1)
+                      }
+                    >
+                      »
+                    </button>
+                  </li>
+                </ul>
+              </nav>
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );

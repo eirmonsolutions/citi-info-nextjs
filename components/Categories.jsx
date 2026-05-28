@@ -1,37 +1,87 @@
 import React from "react";
 import Link from "next/link";
 
+const CategoriesSkeleton = () => {
+    return (
+        <section className="popular-categories">
+            <div className="container">
+
+                <div className="section-heading">
+                    <div className="section-icon">☆</div>
+
+                    <div>
+                        <div className="skeleton skeleton-heading"></div>
+                        <div className="skeleton skeleton-text"></div>
+                    </div>
+                </div>
+
+                <div className="popular-cat-grid">
+                    {[...Array(12)].map((_, index) => (
+                        <div className="popular-cat-card" key={index}>
+
+                            <div className="skeleton skeleton-icon"></div>
+
+                            <div className="skeleton skeleton-title"></div>
+
+                            <div className="skeleton skeleton-count"></div>
+
+                        </div>
+                    ))}
+                </div>
+
+                <div className="text-center">
+                    <div className="skeleton skeleton-btn"></div>
+                </div>
+
+            </div>
+        </section>
+    );
+};
+
 const Categories = async () => {
+
     const getRandomColor = () => {
         const colors = [
-            "#4f46e5", // indigo
-            "#16a34a", // green
-            "#db2777", // pink
-            "#f59e0b", // orange
-            "#7c3aed", // purple
-            "#0284c7", // sky
-            "#ca8a04", // yellow dark
-            "#059669", // teal
-            "#be123c", // rose
-            "#9333ea", // violet
-            "#0369a1", // cyan
-            "#475569", // gray
+            "#4f46e5",
+            "#16a34a",
+            "#db2777",
+            "#f59e0b",
+            "#7c3aed",
+            "#0284c7",
+            "#ca8a04",
+            "#059669",
+            "#be123c",
+            "#9333ea",
+            "#0369a1",
+            "#475569",
         ];
+
         return colors[Math.floor(Math.random() * colors.length)];
     };
 
-    const res = await fetch("http://localhost:8000/api/home-categories", {
-        cache: "no-store",
-    });
+    let categories = [];
 
-    const result = await res.json();
-    const categories = result.data || [];
+    try {
+
+        const res = await fetch("http://localhost:8000/api/home-categories", {
+            cache: "no-store",
+        });
+
+        const result = await res.json();
+
+        categories = result.data || [];
+
+    } catch (error) {
+        return <CategoriesSkeleton />;
+    }
 
     return (
         <section className="popular-categories">
             <div className="container">
+
                 <div className="section-heading">
                     <div className="section-icon">☆</div>
+
                     <div>
                         <h2>Browse Popular Categories</h2>
                         <p>Explore top categories and find the best businesses near you.</p>
@@ -41,7 +91,11 @@ const Categories = async () => {
                 <div className="popular-cat-grid">
                     {categories.map((cat) => (
                         <div className="popular-cat-card" key={cat.id}>
-                            <div className="popular-cat-icon" style={{ background: getRandomColor() }}>
+
+                            <div
+                                className="popular-cat-icon"
+                                style={{ background: getRandomColor() }}
+                            >
                                 {cat.categoryimage && (
                                     <img
                                         src={`http://localhost:8000/storage/${cat.categoryimage}`}
@@ -58,6 +112,7 @@ const Categories = async () => {
                             </Link>
 
                             <p>{cat.listings_count} Listings</p>
+
                         </div>
                     ))}
                 </div>
@@ -67,6 +122,7 @@ const Categories = async () => {
                         View All Categories <span>→</span>
                     </Link>
                 </div>
+
             </div>
         </section>
     );
