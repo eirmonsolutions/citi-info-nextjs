@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Swal from "sweetalert2";
 
-const API_URL = "http://localhost:8000/api/business-enquiry";
+const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/business-enquiry`;
 
 const BusinessContactFormSection = ({ listing }) => {
   const [loading, setLoading] = useState(false);

@@ -16,7 +16,8 @@ import {
   ChevronDown,
 } from "lucide-react";
 
-const BASE_URL = "http://localhost:8000";
+const BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL?.replace("/api", "");
 
 export default function Header() {
   const pathname = usePathname();

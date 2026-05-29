@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 
-const API_URL = "http://localhost:8000/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const CategoriesPage = () => {
 
@@ -48,12 +48,7 @@ const CategoriesPage = () => {
             setLoading(true);
 
             const res = await fetch(
-                `${API_URL}/categories?q=${encodeURIComponent(
-                    searchValue
-                )}&sort=${sortValue}&page=${pageValue}`,
-                {
-                    cache: "no-store",
-                }
+                `${API_URL}/categories?q=${encodeURIComponent(searchValue)}&sort=${sortValue}&page=${pageValue}`
             );
 
             if (!res.ok) {
@@ -268,8 +263,8 @@ const CategoriesPage = () => {
                                     {/* Next */}
                                     <li
                                         className={`page-item ${page === pagination.last_page
-                                                ? "disabled"
-                                                : ""
+                                            ? "disabled"
+                                            : ""
                                             }`}
                                     >
                                         <button

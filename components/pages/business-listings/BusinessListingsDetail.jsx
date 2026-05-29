@@ -15,8 +15,11 @@ import BusinessHourSection from "./BusinessHourSection";
 import BusinessReviewSection from "./BusinessReviewSection";
 import BusinessContactFormSection from "./BusinessContactFormSection";
 
-const API_URL = "http://localhost:8000/api/listings";
-const STORAGE_URL = "https://citiinfo.com.au/storage";
+const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/listings`;
+
+const STORAGE_URL = process.env.NEXT_PUBLIC_STORAGE_URL;
+
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL;
 
 const BusinessListingsDetail = ({ slug }) => {
   const [listing, setListing] = useState(null);
@@ -53,7 +56,9 @@ const BusinessListingsDetail = ({ slug }) => {
   const logoUrl = listing.logo
     ? listing.logo.startsWith("http")
       ? listing.logo
-      : `${STORAGE_URL}/${listing.logo}`
+      : listing.logo.startsWith("storage/")
+        ? `${SITE_URL}/${listing.logo}`
+        : `${STORAGE_URL}/${listing.logo}`
     : "/assets/img/default-logo.png";
 
   const location = [

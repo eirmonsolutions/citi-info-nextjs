@@ -5,7 +5,7 @@ import { useState } from "react";
 import Swal from "sweetalert2";
 import { Eye, EyeOff } from "lucide-react";
 
-const BASE_URL = "http://localhost:8000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const getCookie = (name) => {
     const value = `; ${document.cookie}`;
@@ -43,13 +43,13 @@ export default function AuthForm({ type = "login" }) {
         setLoading(true);
 
         try {
-            await fetch(`${BASE_URL}/sanctum/csrf-cookie`, {
+            await fetch(`${API_URL}/sanctum/csrf-cookie`, {
                 credentials: "include",
             });
 
             const xsrfToken = getCookie("XSRF-TOKEN");
 
-            const url = isLogin ? `${BASE_URL}/login` : `${BASE_URL}/register`;
+            const url = isLogin ? `${API_URL}/login` : `${API_URL}/register`;
 
             const payload = isLogin
                 ? {
@@ -147,7 +147,7 @@ export default function AuthForm({ type = "login" }) {
 
                     <form onSubmit={handleSubmit}>
                         {!isLogin && (
-                            <div className="form-group">
+                            <div className="form-group mb-3">
                                 <label>Full Name</label>
                                 <input
                                     type="text"
@@ -160,7 +160,7 @@ export default function AuthForm({ type = "login" }) {
                             </div>
                         )}
 
-                        <div className="form-group">
+                        <div className="form-group mb-3">
                             <label>Email address</label>
                             <input
                                 type="email"

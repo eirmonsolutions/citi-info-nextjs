@@ -1,131 +1,128 @@
 import React from "react";
 import Link from "next/link";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const STORAGE_URL = process.env.NEXT_PUBLIC_STORAGE_URL;
+
 const CategoriesSkeleton = () => {
-    return (
-        <section className="popular-categories">
-            <div className="container">
+  return (
+    <section className="popular-categories">
+      <div className="container">
+        <div className="section-heading">
+          <div className="section-icon">☆</div>
+          <div>
+            <div className="skeleton skeleton-heading"></div>
+            <div className="skeleton skeleton-text"></div>
+          </div>
+        </div>
 
-                <div className="section-heading">
-                    <div className="section-icon">☆</div>
-
-                    <div>
-                        <div className="skeleton skeleton-heading"></div>
-                        <div className="skeleton skeleton-text"></div>
-                    </div>
-                </div>
-
-                <div className="popular-cat-grid">
-                    {[...Array(12)].map((_, index) => (
-                        <div className="popular-cat-card" key={index}>
-
-                            <div className="skeleton skeleton-icon"></div>
-
-                            <div className="skeleton skeleton-title"></div>
-
-                            <div className="skeleton skeleton-count"></div>
-
-                        </div>
-                    ))}
-                </div>
-
-                <div className="text-center">
-                    <div className="skeleton skeleton-btn"></div>
-                </div>
-
+        <div className="popular-cat-grid">
+          {[...Array(12)].map((_, index) => (
+            <div className="popular-cat-card" key={index}>
+              <div className="skeleton skeleton-icon"></div>
+              <div className="skeleton skeleton-title"></div>
+              <div className="skeleton skeleton-count"></div>
             </div>
-        </section>
-    );
+          ))}
+        </div>
+
+        <div className="text-center">
+          <div className="skeleton skeleton-btn"></div>
+        </div>
+      </div>
+    </section>
+  );
 };
 
 const Categories = async () => {
+  const getRandomColor = () => {
+    const colors = [
+      "#4f46e5",
+      "#16a34a",
+      "#db2777",
+      "#f59e0b",
+      "#7c3aed",
+      "#0284c7",
+      "#ca8a04",
+      "#059669",
+      "#be123c",
+      "#9333ea",
+      "#0369a1",
+      "#475569",
+    ];
 
-    const getRandomColor = () => {
-        const colors = [
-            "#4f46e5",
-            "#16a34a",
-            "#db2777",
-            "#f59e0b",
-            "#7c3aed",
-            "#0284c7",
-            "#ca8a04",
-            "#059669",
-            "#be123c",
-            "#9333ea",
-            "#0369a1",
-            "#475569",
-        ];
+    return colors[Math.floor(Math.random() * colors.length)];
+  };
 
-        return colors[Math.floor(Math.random() * colors.length)];
-    };
+  let categories = [];
 
-    let categories = [];
+  try {
+    const res = await fetch(`${API_URL}/home-categories`, {
+      cache: "no-store",
+    });
 
-    try {
-
-        const res = await fetch("http://localhost:8000/api/home-categories", {
-            cache: "no-store",
-        });
-
-        const result = await res.json();
-
-        categories = result.data || [];
-
-    } catch (error) {
-        return <CategoriesSkeleton />;
+    if (!res.ok) {
+      return <CategoriesSkeleton />;
     }
 
-    return (
-        <section className="popular-categories">
-            <div className="container">
+    const result = await res.json();
+    categories = result?.data || [];
+  } catch (error) {
+    return <CategoriesSkeleton />;
+  }
 
-                <div className="section-heading">
-                    <div className="section-icon">☆</div>
+  return (
+    <section className="popular-categories">
+      <div className="container">
+        <div className="section-heading">
+          <div className="section-icon">☆</div>
+          <div>
+            <h2>Browse Popular Categories</h2>
+            <p>Explore top categories and find the best businesses near you.</p>
+          </div>
+        </div>
 
-                    <div>
-                        <h2>Browse Popular Categories</h2>
-                        <p>Explore top categories and find the best businesses near you.</p>
-                    </div>
+        <div className="popular-cat-grid">
+          {categories.map((cat) => {
+            const imageUrl = cat.categoryimage
+              ? `${STORAGE_URL}/${cat.categoryimage}`
+              : "";
+
+            return (
+              <div className="popular-cat-card" key={cat.id}>
+                <div
+                  className="popular-cat-icon"
+                  style={{ background: getRandomColor() }}
+                >
+                  {cat.categoryimage && (
+                    <img
+                      src={imageUrl}
+                      alt={cat.name}
+                      width={40}
+                      height={40}
+                      style={{ objectFit: "contain" }}
+                    />
+                  )}
                 </div>
 
-                <div className="popular-cat-grid">
-                    {categories.map((cat) => (
-                        <div className="popular-cat-card" key={cat.id}>
+                <Link href={`/categories/${cat.slug}`}>
+                  <h3>{cat.name}</h3>
+                </Link>
 
-                            <div
-                                className="popular-cat-icon"
-                                style={{ background: getRandomColor() }}
-                            >
-                                {cat.categoryimage && (
-                                    <img
-                                        src={`http://localhost:8000/storage/${cat.categoryimage}`}
-                                        alt={cat.name}
-                                        width={40}
-                                        height={40}
-                                        style={{ objectFit: "contain" }}
-                                    />
-                                )}
-                            </div>
+                <p>{cat.listings_count} Listings</p>
+              </div>
+            );
+          })}
+        </div>
 
-                            <Link href={`/categories/${cat.slug}`}>
-                                <h3>{cat.name}</h3>
-                            </Link>
-
-                            <p>{cat.listings_count} Listings</p>
-
-                        </div>
-                    ))}
-                </div>
-
-                <div className="text-center">
-                    <Link href="/categories" className="view-categories-btn">
-                        View All Categories <span>→</span>
-                    </Link>
-                </div>
-
-            </div>
-        </section>
-    );
+        <div className="text-center">
+          <Link href="/categories" className="view-categories-btn">
+            View All Categories <span>→</span>
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
 };
 
 export default Categories;

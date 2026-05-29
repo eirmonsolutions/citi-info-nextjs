@@ -61,10 +61,19 @@ const BusinessListingContent = ({
 
   const getLogoUrl = (item) => {
     if (!item.logo) return FALLBACK_LOGO;
+
     const cleanLogo = String(item.logo).replace(/^\/+/, "");
+
     if (cleanLogo.startsWith("http")) return cleanLogo;
-    if (cleanLogo.startsWith("storage/")) return `http://localhost:8000/${cleanLogo}`;
-    if (cleanLogo.startsWith("business/")) return `${STORAGE_URL}/${cleanLogo}`;
+
+    if (cleanLogo.startsWith("storage/")) {
+      return `${SITE_URL}/${cleanLogo}`;
+    }
+
+    if (cleanLogo.startsWith("business/")) {
+      return `${STORAGE_URL}/${cleanLogo}`;
+    }
+
     return `${STORAGE_URL}/${cleanLogo}`;
   };
 

@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { Star, PenLine, X } from "lucide-react";
 import Swal from "sweetalert2";
 
-const API_URL = "http://localhost:8000/api/business-reviews";
+const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/business-reviews`;
 
 const BusinessReviewSection = ({ listing, user }) => {
   const [openModal, setOpenModal] = useState(false);
