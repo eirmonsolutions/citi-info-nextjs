@@ -5,240 +5,248 @@ import { useState } from "react";
 import Swal from "sweetalert2";
 import { Eye, EyeOff } from "lucide-react";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
+
+const BACKEND_URL = API_URL.replace(/\/api\/?$/, "");
+
+const backendPath = (path = "") => {
+  if (!path) return BACKEND_URL;
+  if (path.startsWith("http")) return path;
+
+  return `${BACKEND_URL}/${path.replace(/^\/+/, "")}`;
+};
 
 const getCookie = (name) => {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) {
-        return decodeURIComponent(parts.pop().split(";").shift());
-    }
-    return "";
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) {
+    return decodeURIComponent(parts.pop().split(";").shift());
+  }
+  return "";
 };
 
 export default function AuthForm({ type = "login" }) {
-    const isLogin = type === "login";
-    const [showPassword, setShowPassword] = useState(false);
-    const [loading, setLoading] = useState(false);
+  const isLogin = type === "login";
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-    const [form, setForm] = useState({
-        name: "",
-        email: "",
-        password: "",
-        agree_terms: false,
-        remember: false,
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+    agree_terms: false,
+    remember: false,
+  });
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+
+    setForm({
+      ...form,
+      [name]: type === "checkbox" ? checked : value,
     });
+  };
 
-    const handleChange = (e) => {
-        const { name, value, type, checked } = e.target;
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
 
-        setForm({
-            ...form,
-            [name]: type === "checkbox" ? checked : value,
+    try {
+      await fetch(`${API_URL}/sanctum/csrf-cookie`, {
+        credentials: "include",
+      });
+
+      const xsrfToken = getCookie("XSRF-TOKEN");
+
+      const url = isLogin ? `${API_URL}/login` : `${API_URL}/register`;
+
+      const payload = isLogin
+        ? {
+            email: form.email,
+            password: form.password,
+            remember: form.remember,
+          }
+        : {
+            name: form.name,
+            email: form.email,
+            password: form.password,
+            agree_terms: form.agree_terms,
+          };
+
+      const res = await fetch(url, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          "X-Requested-With": "XMLHttpRequest",
+          "X-XSRF-TOKEN": xsrfToken,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || data.ok === false) {
+        Swal.fire({
+          icon: "error",
+          title: isLogin ? "Login Failed" : "Registration Failed",
+          text: data.message || "Please check your details and try again.",
+          confirmButtonColor: "#087df2",
         });
-    };
+        return;
+      }
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
+      if (isLogin) {
+        localStorage.setItem("token", data.token || "");
 
-        try {
-            await fetch(`${API_URL}/sanctum/csrf-cookie`, {
-                credentials: "include",
-            });
-
-            const xsrfToken = getCookie("XSRF-TOKEN");
-
-            const url = isLogin ? `${API_URL}/login` : `${API_URL}/register`;
-
-            const payload = isLogin
-                ? {
-                    email: form.email,
-                    password: form.password,
-                    remember: form.remember,
-                }
-                : {
-                    name: form.name,
-                    email: form.email,
-                    password: form.password,
-                    agree_terms: form.agree_terms,
-                };
-
-
-
-            const res = await fetch(url, {
-                method: "POST",
-                credentials: "include",
-                headers: {
-                    "Content-Type": "application/json",
-                    Accept: "application/json",
-                    "X-Requested-With": "XMLHttpRequest",
-                    "X-XSRF-TOKEN": xsrfToken,
-                },
-                body: JSON.stringify(payload),
-            });
-
-            const data = await res.json();
-
-            if (!res.ok || data.ok === false) {
-                Swal.fire({
-                    icon: "error",
-                    title: "Login Failed",
-                    text: data.message || "Please check your details and try again.",
-                    confirmButtonColor: "#087df2",
-                });
-                return;
-            }
-
-            if (isLogin) {
-                Swal.fire({
-                    icon: "success",
-                    title: "Login Successful!",
-                    text: "Welcome back to Citiinfo.",
-                    confirmButtonColor: "#087df2",
-                }).then(() => {
-
-                    localStorage.setItem("token", data.token);
-
-                    if (data.user) {
-                        localStorage.setItem("user", JSON.stringify(data.user));
-                    }
-
-                    const BACKEND_URL =
-                        process.env.NEXT_PUBLIC_API_URL?.replace("/api", "");
-
-                    if (data.redirect_to) {
-                        window.location.href = `${BACKEND_URL}${data.redirect_to}`;
-                    } else {
-                        window.location.href = BACKEND_URL;
-                    }
-                });
-            }
-        } catch (error) {
-            Swal.fire({
-                icon: "error",
-                title: "Server Error",
-                text: "Something went wrong. Please try again.",
-                confirmButtonColor: "#087df2",
-            });
-        } finally {
-            setLoading(false);
+        if (data.user) {
+          localStorage.setItem("user", JSON.stringify(data.user));
         }
-    };
 
-    return (
-        <section className="auth-page">
-            <div className="auth-card">
-                <div className="auth-left">
-                    <img src="/assets/images/login-img.png" alt="Login" />
-                </div>
+        Swal.fire({
+          icon: "success",
+          title: "Login Successful!",
+          text: "Welcome back to Citiinfo.",
+          confirmButtonColor: "#087df2",
+        }).then(() => {
+          window.location.href = backendPath(data.redirect_to);
+        });
+      } else {
+        Swal.fire({
+          icon: "success",
+          title: "Registration Successful!",
+          text: "Your account has been created successfully. Please login now.",
+          confirmButtonColor: "#087df2",
+        }).then(() => {
+          window.location.href = "/login";
+        });
+      }
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Server Error",
+        text: "Something went wrong. Please try again.",
+        confirmButtonColor: "#087df2",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
-                <div className="auth-right">
-                    <div className="auth-tabs">
-                        <Link href="/login" className={isLogin ? "active" : ""}>
-                            Login
-                        </Link>
+  return (
+    <section className="auth-page">
+      <div className="auth-card">
+        <div className="auth-left">
+          <img src="/assets/images/login-img.png" alt="Login" />
+        </div>
 
-                        <Link
-                            href="/register"
-                            className={!isLogin ? "active outline" : "outline"}
-                        >
-                            Register
-                        </Link>
-                    </div>
+        <div className="auth-right">
+          <div className="auth-tabs">
+            <Link href="/login" className={isLogin ? "active" : ""}>
+              Login
+            </Link>
 
-                    <h1>Welcome!</h1>
-                    <p>{isLogin ? "Sign Into Your Account" : "Create Your Account"}</p>
+            <Link
+              href="/register"
+              className={!isLogin ? "active outline" : "outline"}
+            >
+              Register
+            </Link>
+          </div>
 
-                    <form onSubmit={handleSubmit}>
-                        {!isLogin && (
-                            <div className="form-group mb-3">
-                                <label>Full Name</label>
-                                <input
-                                    type="text"
-                                    name="name"
-                                    placeholder="Full Name"
-                                    value={form.name}
-                                    onChange={handleChange}
-                                    required
-                                />
-                            </div>
-                        )}
+          <h1>Welcome!</h1>
+          <p>{isLogin ? "Sign Into Your Account" : "Create Your Account"}</p>
 
-                        <div className="form-group mb-3">
-                            <label>Email address</label>
-                            <input
-                                type="email"
-                                name="email"
-                                placeholder="Email address"
-                                value={form.email}
-                                onChange={handleChange}
-                                required
-                            />
-                        </div>
+          <form onSubmit={handleSubmit}>
+            {!isLogin && (
+              <div className="form-group mb-3">
+                <label>Full Name</label>
+                <input
+                  type="text"
+                  name="name"
+                  placeholder="Full Name"
+                  value={form.name}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            )}
 
-                        <div className="form-group">
-                            <label>Password</label>
-                            <div className="password-field">
-                                <input
-                                    type={showPassword ? "text" : "password"}
-                                    name="password"
-                                    placeholder="Password"
-                                    value={form.password}
-                                    onChange={handleChange}
-                                    required
-                                />
-
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                >
-                                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                                </button>
-                            </div>
-                        </div>
-
-                        {isLogin ? (
-                            <div className="auth-options">
-                                <label>
-                                    <input
-                                        type="checkbox"
-                                        name="remember"
-                                        checked={form.remember}
-                                        onChange={handleChange}
-                                    />{" "}
-                                    Remember me
-                                </label>
-
-                                <Link href="/forgot-password">Forgot Password</Link>
-                            </div>
-                        ) : (
-                            <div className="auth-options">
-                                <label>
-                                    <input
-                                        type="checkbox"
-                                        name="agree_terms"
-                                        checked={form.agree_terms}
-                                        onChange={handleChange}
-                                        required
-                                    />{" "}
-                                    I agree to the terms of service
-                                </label>
-                            </div>
-                        )}
-
-                        <button type="submit" className="auth-submit" disabled={loading}>
-                            {loading
-                                ? isLogin
-                                    ? "Logging in..."
-                                    : "Registering..."
-                                : isLogin
-                                    ? "Login"
-                                    : "Register"}
-                        </button>
-                    </form>
-                </div>
+            <div className="form-group mb-3">
+              <label>Email address</label>
+              <input
+                type="email"
+                name="email"
+                placeholder="Email address"
+                value={form.email}
+                onChange={handleChange}
+                required
+              />
             </div>
-        </section>
-    );
+
+            <div className="form-group">
+              <label>Password</label>
+              <div className="password-field">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  placeholder="Password"
+                  value={form.password}
+                  onChange={handleChange}
+                  required
+                />
+
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
+            </div>
+
+            {isLogin ? (
+              <div className="auth-options">
+                <label>
+                  <input
+                    type="checkbox"
+                    name="remember"
+                    checked={form.remember}
+                    onChange={handleChange}
+                  />{" "}
+                  Remember me
+                </label>
+
+                <Link href="/forgot-password">Forgot Password</Link>
+              </div>
+            ) : (
+              <div className="auth-options">
+                <label>
+                  <input
+                    type="checkbox"
+                    name="agree_terms"
+                    checked={form.agree_terms}
+                    onChange={handleChange}
+                    required
+                  />{" "}
+                  I agree to the terms of service
+                </label>
+              </div>
+            )}
+
+            <button type="submit" className="auth-submit" disabled={loading}>
+              {loading
+                ? isLogin
+                  ? "Logging in..."
+                  : "Registering..."
+                : isLogin
+                ? "Login"
+                : "Register"}
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+  );
 }
