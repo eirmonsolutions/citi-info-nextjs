@@ -97,16 +97,21 @@ export default function AuthForm({ type = "login" }) {
                     text: "Welcome back to Citiinfo.",
                     confirmButtonColor: "#087df2",
                 }).then(() => {
-                    window.location.href = data.redirect_to || `${BASE_URL}/dashboard`;
-                });
-            } else {
-                Swal.fire({
-                    icon: "success",
-                    title: "Registration Successful!",
-                    text: "Your account has been created successfully. Please login now.",
-                    confirmButtonColor: "#087df2",
-                }).then(() => {
-                    window.location.href = "/login";
+
+                    localStorage.setItem("token", data.token);
+
+                    if (data.user) {
+                        localStorage.setItem("user", JSON.stringify(data.user));
+                    }
+
+                    const BACKEND_URL =
+                        process.env.NEXT_PUBLIC_API_URL?.replace("/api", "");
+
+                    if (data.redirect_to) {
+                        window.location.href = `${BACKEND_URL}${data.redirect_to}`;
+                    } else {
+                        window.location.href = BACKEND_URL;
+                    }
                 });
             }
         } catch (error) {

@@ -16,8 +16,8 @@ import {
   ChevronDown,
 } from "lucide-react";
 
-const BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL?.replace("/api", "");
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const BACKEND_URL = API_URL?.replace("/api", "");
 
 export default function Header() {
   const pathname = usePathname();
@@ -30,6 +30,12 @@ export default function Header() {
   const isActive = (path) => {
     if (path === "/") return pathname === "/";
     return pathname.startsWith(path);
+  };
+
+  const getBackendUrl = (path) => {
+    if (!path) return BACKEND_URL || "/";
+    if (path.startsWith("http")) return path;
+    return `${BACKEND_URL}${path}`;
   };
 
   const isResourceActive = [
@@ -49,7 +55,7 @@ export default function Header() {
       try {
         const token = localStorage.getItem("token");
 
-        const res = await fetch(`${BASE_URL}/api/auth-user`, {
+        const res = await fetch(`${API_URL}/auth-user`, {
           method: "GET",
           credentials: "include",
           headers: {
@@ -79,7 +85,7 @@ export default function Header() {
     try {
       const token = localStorage.getItem("token");
 
-      await fetch(`${BASE_URL}/api/logout`, {
+      await fetch(`${API_URL}/logout`, {
         method: "POST",
         credentials: "include",
         headers: {
@@ -88,7 +94,7 @@ export default function Header() {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
       });
-    } catch (error) {}
+    } catch (error) { }
 
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -114,12 +120,10 @@ export default function Header() {
               <div className={`dashboard-right-header user-dd ${userOpen ? "open" : ""}`}>
                 {authUser.avatar ? (
                   <div className="profile-img">
-                    <img src={authUser.avatar} alt={authUser.display_name} />
+                    <img src={authUser.avatar} alt={authUser.display_name || "User"} />
                   </div>
                 ) : (
-                  <div className="profile-box">
-                    {authUser.initials || "U"}
-                  </div>
+                  <div className="profile-box">{authUser.initials || "U"}</div>
                 )}
 
                 <button
@@ -128,43 +132,36 @@ export default function Header() {
                   onClick={() => setUserOpen(!userOpen)}
                   aria-expanded={userOpen}
                 >
-                  <span className="user-name">
-                    {authUser.display_name || "User"}
-                  </span>
-
+                  <span className="user-name">{authUser.display_name || authUser.name || "User"}</span>
                   <span className="chev">
                     <ChevronDown size={18} />
                   </span>
                 </button>
 
                 <div className="dropdown-menu-user">
-                  <a href={authUser.dashboard_url} className="dd-item">
+                  <a href={getBackendUrl(authUser.dashboard_url)} className="dd-item">
                     Dashboard
                   </a>
 
-                  <a href="#" className="dd-item">
+                  <a href={getBackendUrl("/user/profile")} className="dd-item">
                     My Profile
                   </a>
 
-                  <a href="#" className="dd-item">
+                  <a href={getBackendUrl("/user/wishlist")} className="dd-item">
                     Wishlist ({authUser.wishlist_count || 0})
                   </a>
 
-                  <a href="#" className="dd-item">
+                  <a href={getBackendUrl("/user/notifications")} className="dd-item">
                     Notifications
                   </a>
 
-                  <a href="#" className="dd-item">
+                  <a href={getBackendUrl("/user/settings")} className="dd-item">
                     Settings
                   </a>
 
                   <div className="dd-divider"></div>
 
-                  <button
-                    type="button"
-                    className="dd-item dd-danger"
-                    onClick={logout}
-                  >
+                  <button type="button" className="dd-item dd-danger" onClick={logout}>
                     Logout
                   </button>
                 </div>
@@ -175,10 +172,7 @@ export default function Header() {
               </Link>
             )}
 
-            <button
-              className="menu-toggle"
-              onClick={() => setMenuOpen(!menuOpen)}
-            >
+            <button className="menu-toggle" onClick={() => setMenuOpen(!menuOpen)}>
               <span></span>
               <span></span>
               <span></span>
@@ -199,25 +193,11 @@ export default function Header() {
             Home
           </Link>
 
-          <Link
-            href="/business-listings"
-            className={`nav-link ${isActive("/business-listings") ? "active" : ""}`}
-          >
-            <span className="icon">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                <path d="M14 2v6h6" />
-                <path d="M16 13H8" />
-                <path d="M16 17H8" />
-              </svg>
-            </span>
+          <Link href="/business-listings" className={`nav-link ${isActive("/business-listings") ? "active" : ""}`}>
             Business Listings
           </Link>
 
-          <Link
-            href="/categories"
-            className={`nav-link ${isActive("/categories") ? "active" : ""}`}
-          >
+          <Link href="/categories" className={`nav-link ${isActive("/categories") ? "active" : ""}`}>
             <span className="icon">
               <LayoutGrid size={18} />
             </span>
@@ -229,15 +209,7 @@ export default function Header() {
               className={`nav-link dropdown-btn ${isResourceActive ? "active" : ""}`}
               onClick={() => setResourceOpen(!resourceOpen)}
             >
-              <span className="icon">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                </svg>
-              </span>
               Resources
-              <svg className="dropdown-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="m6 9 6 6 6-6" />
-              </svg>
             </button>
 
             <div className={`dropdown-menu-custom ${resourceOpen ? "show" : ""}`}>
