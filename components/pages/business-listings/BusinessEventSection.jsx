@@ -4,7 +4,7 @@ import React from "react";
 import { MapPin } from "lucide-react";
 import Link from "next/link";
 
-const STORAGE_URL = "https://citiinfo.com.au/storage";
+const STORAGE_URL = "http://localhost:8000/storage";
 
 const BusinessEventSection = ({ listing }) => {
     const event = listing?.events?.[0];

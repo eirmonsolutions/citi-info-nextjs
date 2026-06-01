@@ -9,7 +9,6 @@ import {
   SquarePen,
   PhoneCall,
   CircleQuestionMark,
-  Megaphone,
   Settings,
   FileText,
   ShieldCheck,
@@ -41,7 +40,6 @@ export default function Header() {
     "/blog",
     "/contact-us",
     "/faqs",
-    "/advertise",
     "/how-it-works",
     "/terms",
     "/privacy",
@@ -249,7 +247,6 @@ export default function Header() {
               <Link href="/blog"><span className="dd-icon"><SquarePen size={18} /></span>Blog</Link>
               <Link href="/contact-us"><span className="dd-icon"><PhoneCall size={18} /></span>Contact Us</Link>
               <Link href="/faqs"><span className="dd-icon"><CircleQuestionMark size={18} /></span>FAQs</Link>
-              <Link href="/advertise"><span className="dd-icon"><Megaphone size={18} /></span>Advertise</Link>
               <Link href="/how-it-works"><span className="dd-icon"><Settings size={18} /></span>How It Works</Link>
               <Link href="/terms"><span className="dd-icon"><FileText size={18} /></span>Terms & Conditions</Link>
               <Link href="/privacy"><span className="dd-icon"><ShieldCheck size={18} /></span>Privacy Policy</Link>

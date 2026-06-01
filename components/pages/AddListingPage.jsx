@@ -10,8 +10,11 @@ import {
     Plus,
     X,
 } from "lucide-react";
+import Swal from "sweetalert2";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api";
+
+const MAX_GALLERY_IMAGES = 5;
 
 const steps = [
     "Basic Info",
@@ -53,6 +56,7 @@ const CustomSelect = ({
     disabled = false,
     value,
     onSelect,
+    error,
 }) => {
     const [search, setSearch] = useState("");
 
@@ -65,14 +69,14 @@ const CustomSelect = ({
     );
 
     return (
-        <div className="form-group">
+        <div className={`form-group ${error ? "has-error" : ""}`}>
             <label>
                 {label} {required && <span>*</span>}
             </label>
 
             <div
                 className={`custom-select ${isOpen ? "is-open" : ""} ${disabled ? "is-disabled" : ""
-                    }`}
+                    } ${error ? "has-error" : ""}`}
             >
                 <button
                     type="button"
@@ -136,14 +140,21 @@ const CustomSelect = ({
                     </div>
                 )}
             </div>
+            {error && <p className="field-error">{error}</p>}
         </div>
     );
 };
+
+const isEmpty = (value) => !String(value ?? "").trim();
+
+const isValidEmail = (email) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email).trim());
 
 const AddListingPage = () => {
     const [step, setStep] = useState(1);
     const [openSelect, setOpenSelect] = useState(null);
     const [openReview, setOpenReview] = useState("basic");
+    const [fieldErrors, setFieldErrors] = useState({});
 
     const [categories, setCategories] = useState([]);
     const [countries, setCountries] = useState([]);
@@ -313,8 +324,19 @@ const AddListingPage = () => {
         }
     };
 
+    const clearFieldError = (field) => {
+        setFieldErrors((prev) => {
+            if (!prev[field]) return prev;
+            const next = { ...prev };
+            delete next[field];
+            return next;
+        });
+    };
+
     const handleInput = (e) => {
         const { name, value, type, checked } = e.target;
+
+        clearFieldError(name);
 
         setFormData((prev) => ({
             ...prev,
@@ -370,14 +392,120 @@ const AddListingPage = () => {
         });
     };
 
-    const nextStep = () => setStep((prev) => Math.min(prev + 1, 6));
-    const prevStep = () => setStep((prev) => Math.max(prev - 1, 1));
+    const handleGalleryChange = (e) => {
+        const selected = Array.from(e.target.files || []);
+        e.target.value = "";
 
+        if (!selected.length) return;
+
+        setGalleryFiles((prev) => {
+            const remaining = MAX_GALLERY_IMAGES - prev.length;
+
+            if (remaining <= 0) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Image Limit Reached",
+                    text: `You can upload a maximum of ${MAX_GALLERY_IMAGES} images. Remove one to add another.`,
+                    confirmButtonColor: "#087df2",
+                });
+                return prev;
+            }
+
+            const toAdd = selected.slice(0, remaining);
+            const next = [...prev, ...toAdd];
+
+            if (selected.length > remaining) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Image Limit Reached",
+                    text: `Only ${MAX_GALLERY_IMAGES} images allowed. ${selected.length - remaining} image(s) were not added.`,
+                    confirmButtonColor: "#087df2",
+                });
+            }
+
+            return next;
+        });
+    };
+
+    const validateStep = (currentStep) => {
+        const errors = {};
+
+        if (currentStep === 1) {
+            if (isEmpty(formData.business_name)) {
+                errors.business_name = "Business name is required.";
+            }
+            if (isEmpty(formData.category_id)) {
+                errors.category_id = "Please select a category.";
+            }
+            if (isEmpty(formData.country)) {
+                errors.country = "Please select a country.";
+            }
+            if (isEmpty(formData.state)) {
+                errors.state = "Please select a state.";
+            }
+            if (isEmpty(formData.city)) {
+                errors.city = "Please select a suburb.";
+            }
+            if (isEmpty(formData.address)) {
+                errors.address = "Full address is required.";
+            }
+            if (isEmpty(formData.description)) {
+                errors.description = "Business description is required.";
+            }
+            if (!logoFile) {
+                errors.business_logo = "Business logo is required.";
+            }
+        }
+
+        if (currentStep === 2) {
+            if (isEmpty(formData.contact_name)) {
+                errors.contact_name = "Your name is required.";
+            }
+            if (isEmpty(formData.phone)) {
+                errors.phone = "Phone is required.";
+            }
+            if (isEmpty(formData.email)) {
+                errors.email = "Email is required.";
+            } else if (!isValidEmail(formData.email)) {
+                errors.email = "Please enter a valid email address.";
+            }
+        }
+
+        setFieldErrors(errors);
+        return Object.keys(errors).length === 0;
+    };
+
+    const nextStep = () => {
+        if (!validateStep(step)) {
+            setMessage("Please fill in all required fields before continuing.");
+            return;
+        }
+
+        setMessage("");
+        setFieldErrors({});
+        setStep((prev) => Math.min(prev + 1, 6));
+    };
+
+    const prevStep = () => {
+        setMessage("");
+        setFieldErrors({});
+        setStep((prev) => Math.max(prev - 1, 1));
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (!formData.agree_terms) {
+            setFieldErrors({ agree_terms: "You must agree to the terms." });
+            setMessage(
+                "Please agree to the Terms of Service and Privacy Policy."
+            );
+            return;
+        }
+
         setLoading(true);
         setMessage("");
+        setFieldErrors({});
 
         try {
             const data = new FormData();
@@ -449,12 +577,18 @@ const AddListingPage = () => {
             const result = await res.json();
 
             if (!res.ok) {
-                console.log(result);
-                setMessage(result.message || "Please check required fields.");
+                Swal.fire({
+                    icon: "error",
+                    title: "Submission Failed",
+                    text:
+                        result.message ||
+                        "Please check required fields and try again.",
+                    confirmButtonColor: "#087df2",
+                });
                 return;
             }
 
-            setMessage("Listing submitted successfully. Waiting for approval.");
+            setMessage("");
             setStep(1);
 
             setFormData({
@@ -495,9 +629,24 @@ const AddListingPage = () => {
                     popular: false,
                 },
             ]);
+
+            await Swal.fire({
+                icon: "success",
+                title: "Listing Submitted!",
+                text:
+                    result.message ||
+                    "Your business listing has been submitted successfully. It will be reviewed and published after approval.",
+                confirmButtonText: "OK",
+                confirmButtonColor: "#087df2",
+            });
         } catch (error) {
             console.error(error);
-            setMessage("Something went wrong. Please try again.");
+            Swal.fire({
+                icon: "error",
+                title: "Something Went Wrong",
+                text: "Unable to submit your listing. Please try again.",
+                confirmButtonColor: "#087df2",
+            });
         } finally {
             setLoading(false);
         }
@@ -536,7 +685,14 @@ const AddListingPage = () => {
             <form onSubmit={handleSubmit}>
                 <div className="container wizard-body">
                     {message && (
-                        <div className="alert alert-info mb-3">
+                        <div
+                            className={`alert mb-3 ${
+                                message.includes("successfully")
+                                    ? "alert-success"
+                                    : "alert-danger"
+                            }`}
+                            role="alert"
+                        >
                             {message}
                         </div>
                     )}
@@ -549,7 +705,9 @@ const AddListingPage = () => {
                                 <div className="col-lg-7">
                                     <div className="form-grid">
                                         <div className="row">
-                                            <div className="col-md-6 form-group">
+                                            <div
+                                                className={`col-md-6 form-group ${fieldErrors.business_name ? "has-error" : ""}`}
+                                            >
                                                 <label>
                                                     Business Name <span>*</span>
                                                 </label>
@@ -559,8 +717,12 @@ const AddListingPage = () => {
                                                     value={formData.business_name}
                                                     onChange={handleInput}
                                                     placeholder="Enter your business name"
-                                                    required
                                                 />
+                                                {fieldErrors.business_name && (
+                                                    <p className="field-error">
+                                                        {fieldErrors.business_name}
+                                                    </p>
+                                                )}
                                             </div>
 
                                             <div className="col-md-6">
@@ -573,7 +735,9 @@ const AddListingPage = () => {
                                                     value={formData.category_id}
                                                     openSelect={openSelect}
                                                     setOpenSelect={setOpenSelect}
+                                                    error={fieldErrors.category_id}
                                                     onSelect={(item) => {
+                                                        clearFieldError("category_id");
                                                         setFormData((prev) => ({
                                                             ...prev,
                                                             category_id: item.id,
@@ -593,7 +757,9 @@ const AddListingPage = () => {
                                                     value={formData.country}
                                                     openSelect={openSelect}
                                                     setOpenSelect={setOpenSelect}
+                                                    error={fieldErrors.country}
                                                     onSelect={(item) => {
+                                                        clearFieldError("country");
                                                         setFormData((prev) => ({
                                                             ...prev,
                                                             country: item.id,
@@ -617,7 +783,9 @@ const AddListingPage = () => {
                                                     openSelect={openSelect}
                                                     setOpenSelect={setOpenSelect}
                                                     disabled={!formData.country}
+                                                    error={fieldErrors.state}
                                                     onSelect={(item) => {
+                                                        clearFieldError("state");
                                                         setFormData((prev) => ({
                                                             ...prev,
                                                             state: item.id,
@@ -639,7 +807,9 @@ const AddListingPage = () => {
                                                     openSelect={openSelect}
                                                     setOpenSelect={setOpenSelect}
                                                     disabled={!formData.state}
+                                                    error={fieldErrors.city}
                                                     onSelect={(item) => {
+                                                        clearFieldError("city");
                                                         setFormData((prev) => ({
                                                             ...prev,
                                                             city: item.id,
@@ -648,7 +818,9 @@ const AddListingPage = () => {
                                                 />
                                             </div>
 
-                                            <div className="col-md-12 form-group">
+                                            <div
+                                                className={`col-md-12 form-group ${fieldErrors.address ? "has-error" : ""}`}
+                                            >
                                                 <label>
                                                     Full Address <span>*</span>
                                                 </label>
@@ -658,11 +830,17 @@ const AddListingPage = () => {
                                                     onChange={handleInput}
                                                     rows="3"
                                                     placeholder="Enter full business address"
-                                                    required
                                                 />
+                                                {fieldErrors.address && (
+                                                    <p className="field-error">
+                                                        {fieldErrors.address}
+                                                    </p>
+                                                )}
                                             </div>
 
-                                            <div className="col-md-12 form-group">
+                                            <div
+                                                className={`col-md-12 form-group ${fieldErrors.description ? "has-error" : ""}`}
+                                            >
                                                 <label>
                                                     Business Description <span>*</span>
                                                 </label>
@@ -672,15 +850,21 @@ const AddListingPage = () => {
                                                     onChange={handleInput}
                                                     rows="5"
                                                     placeholder="Describe your business, services, and specialties"
-                                                    required
                                                 />
+                                                {fieldErrors.description && (
+                                                    <p className="field-error">
+                                                        {fieldErrors.description}
+                                                    </p>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div className="col-lg-5">
-                                    <div className="form-group">
+                                    <div
+                                        className={`form-group ${fieldErrors.business_logo ? "has-error" : ""}`}
+                                    >
                                         <label>
                                             Business Logo <span>*</span>
                                         </label>
@@ -696,11 +880,20 @@ const AddListingPage = () => {
                                                 type="file"
                                                 hidden
                                                 accept="image/*"
-                                                onChange={(e) =>
-                                                    setLogoFile(e.target.files?.[0] || null)
-                                                }
+                                                onChange={(e) => {
+                                                    clearFieldError("business_logo");
+                                                    setLogoFile(
+                                                        e.target.files?.[0] || null
+                                                    );
+                                                }}
                                             />
                                         </label>
+
+                                        {fieldErrors.business_logo && (
+                                            <p className="field-error">
+                                                {fieldErrors.business_logo}
+                                            </p>
+                                        )}
 
                                         {logoFile && (
                                             <div className="logo-preview-area">
@@ -734,7 +927,9 @@ const AddListingPage = () => {
 
                             <div className="form-grid">
                                 <div className="row">
-                                    <div className="col-md-4 form-group">
+                                    <div
+                                        className={`col-md-4 form-group ${fieldErrors.contact_name ? "has-error" : ""}`}
+                                    >
                                         <label>
                                             Your Name <span>*</span>
                                         </label>
@@ -744,11 +939,17 @@ const AddListingPage = () => {
                                             value={formData.contact_name}
                                             onChange={handleInput}
                                             placeholder="John Doe"
-                                            required
                                         />
+                                        {fieldErrors.contact_name && (
+                                            <p className="field-error">
+                                                {fieldErrors.contact_name}
+                                            </p>
+                                        )}
                                     </div>
 
-                                    <div className="col-md-4 form-group">
+                                    <div
+                                        className={`col-md-4 form-group ${fieldErrors.phone ? "has-error" : ""}`}
+                                    >
                                         <label>
                                             Phone <span>*</span>
                                         </label>
@@ -758,11 +959,17 @@ const AddListingPage = () => {
                                             value={formData.phone}
                                             onChange={handleInput}
                                             placeholder="0412 345 678"
-                                            required
                                         />
+                                        {fieldErrors.phone && (
+                                            <p className="field-error">
+                                                {fieldErrors.phone}
+                                            </p>
+                                        )}
                                     </div>
 
-                                    <div className="col-md-4 form-group">
+                                    <div
+                                        className={`col-md-4 form-group ${fieldErrors.email ? "has-error" : ""}`}
+                                    >
                                         <label>
                                             Email <span>*</span>
                                         </label>
@@ -772,8 +979,12 @@ const AddListingPage = () => {
                                             value={formData.email}
                                             onChange={handleInput}
                                             placeholder="business@example.com"
-                                            required
                                         />
+                                        {fieldErrors.email && (
+                                            <p className="field-error">
+                                                {fieldErrors.email}
+                                            </p>
+                                        )}
                                     </div>
 
                                     <div className="col-md-4 form-group">
@@ -1272,33 +1483,49 @@ const AddListingPage = () => {
                                             </div>
                                         </div>
 
-                                        <label className="upload-box">
+                                        <label
+                                            className={`upload-box ${galleryFiles.length >= MAX_GALLERY_IMAGES ? "is-full" : ""}`}
+                                        >
                                             <div className="upload-inner">
                                                 <div className="upload-circle">
                                                     <UploadCloud size={20} />
                                                 </div>
 
-                                                <div className="upload-title">Upload Your Photos</div>
+                                                <div className="upload-title">
+                                                    {galleryFiles.length >= MAX_GALLERY_IMAGES
+                                                        ? "Maximum images reached"
+                                                        : "Upload Your Photos"}
+                                                </div>
                                                 <div className="upload-hint">
-                                                    Drag and drop multiple images or click to browse
+                                                    Drag and drop images or click to browse
                                                 </div>
                                                 <div className="upload-meta">
-                                                    PNG, JPG, WEBP up to 4MB each
+                                                    PNG, JPG, WEBP up to 4MB each (max{" "}
+                                                    {MAX_GALLERY_IMAGES} images)
                                                 </div>
 
-                                                <div className="upload-btn">Choose Images</div>
+                                                <div className="upload-meta">
+                                                    {galleryFiles.length} / {MAX_GALLERY_IMAGES}{" "}
+                                                    selected
+                                                </div>
+
+                                                {galleryFiles.length < MAX_GALLERY_IMAGES && (
+                                                    <div className="upload-btn">
+                                                        Choose Images
+                                                    </div>
+                                                )}
                                             </div>
 
-                                            <input
-                                                name="business_gallery[]"
-                                                type="file"
-                                                accept="image/*"
-                                                multiple
-                                                hidden
-                                                onChange={(e) =>
-                                                    setGalleryFiles(Array.from(e.target.files || []))
-                                                }
-                                            />
+                                            {galleryFiles.length < MAX_GALLERY_IMAGES && (
+                                                <input
+                                                    name="business_gallery[]"
+                                                    type="file"
+                                                    accept="image/*"
+                                                    multiple
+                                                    hidden
+                                                    onChange={handleGalleryChange}
+                                                />
+                                            )}
                                         </label>
                                     </div>
                                 </div>
@@ -1358,7 +1585,8 @@ const AddListingPage = () => {
                                                         Gallery Preview
                                                     </div>
                                                     <div className="media-subtitle">
-                                                        {galleryFiles.length} photos ready to showcase
+                                                        {galleryFiles.length} / {MAX_GALLERY_IMAGES}{" "}
+                                                        photos ready to showcase
                                                     </div>
                                                 </div>
                                             </div>
@@ -1690,7 +1918,7 @@ const AddListingPage = () => {
                                                         const img = rawImg
                                                             ? rawImg.startsWith("http")
                                                                 ? rawImg
-                                                                : `https://citiinfo.com.au/storage/${rawImg}`
+                                                                : `http://localhost:8000/storage/${rawImg}`
                                                             : "";
 
                                                         return (
@@ -1741,7 +1969,10 @@ const AddListingPage = () => {
                                             <div className="review-grid">
                                                 <div className="review-item full">
                                                     <div className="lbl">Gallery Images</div>
-                                                    <div className="val">{galleryFiles.length} image(s) uploaded</div>
+                                                    <div className="val">
+                                                        {galleryFiles.length} / {MAX_GALLERY_IMAGES}{" "}
+                                                        image(s) uploaded
+                                                    </div>
                                                 </div>
 
                                                 <div className="review-item full">
@@ -1767,7 +1998,9 @@ const AddListingPage = () => {
                                     )}
                                 </div>
 
-                                <div className="terms-box mt-3">
+                                <div
+                                    className={`terms-box mt-3 ${fieldErrors.agree_terms ? "has-error" : ""}`}
+                                >
                                     <label className="d-flex align-items-start gap-2 m-0">
                                         <input
                                             type="checkbox"
@@ -1775,13 +2008,17 @@ const AddListingPage = () => {
                                             checked={formData.agree_terms}
                                             onChange={handleInput}
                                             className="mt-1"
-                                            required
                                         />
                                         <span className="terms-text">
-                                            I agree to the <a href="#">Terms of Service</a> and{" "}
-                                            <a href="#">Privacy Policy</a>. I confirm that all information provided is accurate and up to date.
+                                            I agree to the <a href="/terms" target="_blank" rel="noopener noreferrer">Terms of Service</a> and{" "}
+                                            <a href="/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>. I confirm that all information provided is accurate and up to date.
                                         </span>
                                     </label>
+                                    {fieldErrors.agree_terms && (
+                                        <p className="field-error mt-2">
+                                            {fieldErrors.agree_terms}
+                                        </p>
+                                    )}
                                 </div>
 
                             </div>

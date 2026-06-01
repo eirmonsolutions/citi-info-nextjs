@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  allowedDevOrigins: ["http://192.168.1.14:3000", "http://localhost:3000", "https://citiinfo.com.au/"],
+  allowedDevOrigins: ["http://192.168.1.14:3000", "http://localhost:3000", "http://localhost:8000/"],
 
 };
 

@@ -2,7 +2,7 @@
 
 import React from "react";
 
-const STORAGE_URL = "https://citiinfo.com.au/storage";
+const STORAGE_URL = "http://localhost:8000/storage";
 
 const FeaturesSection = ({ listing }) => {
   const features = listing?.features || [];
