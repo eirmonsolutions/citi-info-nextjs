@@ -4,7 +4,7 @@ import Link from "next/link";
 export default function Footer() {
   return (
     <footer className="site-footer">
-      <div className="container site-footer-inner">
+      <div className="container px-2 md:px-4 site-footer-inner">
         <div className="footer-col footer-brand">
           <Link href="/" className="footer-logo">
             <img src="/assets/images/logo.png" alt="Citiinfo" />
@@ -36,6 +36,7 @@ export default function Footer() {
             <li><Link href="/business-listings">Business Listings</Link></li>
             <li><Link href="/categories">Categories</Link></li>
             <li><Link href="/about-us">About Us</Link></li>
+            <li><Link href="/blog">Blog</Link></li>
             <li><Link href="/how-it-works">How It Works</Link></li>
             <li><Link href="/contact-us">Contact Us</Link></li>
           </ul>

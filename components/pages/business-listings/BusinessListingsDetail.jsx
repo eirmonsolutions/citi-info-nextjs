@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Link from "next/link";
 import { Star, MapPin } from "lucide-react";
 
 import FAQSection from "./FAQSection";
@@ -14,51 +15,118 @@ import ContactInfo from "./ContactInfo";
 import BusinessHourSection from "./BusinessHourSection";
 import BusinessReviewSection from "./BusinessReviewSection";
 import BusinessContactFormSection from "./BusinessContactFormSection";
+import BusinessListingDetailSkeleton from "./BusinessListingDetailSkeleton";
+import { fetchListingBySlug } from "@/lib/fetchListingBySlug";
 
-const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/listings`;
+const STORAGE_URL =
+  process.env.NEXT_PUBLIC_STORAGE_URL || "http://localhost:8000/storage";
 
-const STORAGE_URL = process.env.NEXT_PUBLIC_STORAGE_URL;
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL;
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:8000";
 
 const BusinessListingsDetail = ({ slug }) => {
   const [listing, setListing] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
+  const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
-    const fetchListing = async () => {
+    let cancelled = false;
+
+    const loadListing = async () => {
+      if (!slug) {
+        setLoading(false);
+        setNotFound(true);
+        return;
+      }
+
+      setLoading(true);
+      setNotFound(false);
+      setLoadError("");
+      setListing(null);
+
       try {
-        const res = await fetch(API_URL, { cache: "no-store" });
-        const data = await res.json();
+        const matchedListing = await fetchListingBySlug(slug);
 
-        const listings = Array.isArray(data?.data)
-          ? data.data
-          : Array.isArray(data)
-            ? data
-            : [];
+        if (cancelled) return;
 
-        const matchedListing = listings.find(
-          (item) => item.slug === slug
-        );
-
-        setListing(matchedListing || null);
+        if (matchedListing) {
+          setListing(matchedListing);
+          setNotFound(false);
+        } else {
+          setListing(null);
+          setNotFound(true);
+        }
       } catch (error) {
         console.error("Listing fetch error:", error);
+
+        if (cancelled) return;
+
+        setListing(null);
+        setNotFound(false);
+        setLoadError(
+          "Could not connect to the server. Make sure the API is running and try again."
+        );
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     };
 
-    if (slug) {
-      fetchListing();
-    }
+    loadListing();
+
+    return () => {
+      cancelled = true;
+    };
   }, [slug]);
 
-  if (!listing) return null;
+  if (loading) {
+    return <BusinessListingDetailSkeleton />;
+  }
 
-  const logoUrl = listing.logo
-    ? listing.logo.startsWith("http")
-      ? listing.logo
-      : listing.logo.startsWith("storage/")
-        ? `${SITE_URL}/${listing.logo}`
-        : `${STORAGE_URL}/${listing.logo}`
+  if (loadError) {
+    return (
+      <section className="listing-details-area">
+        <div className="container py-5 text-center">
+          <h1>Unable to load listing</h1>
+          <p className="mt-3">{loadError}</p>
+          <button
+            type="button"
+            className="btn-add d-inline-flex mt-4"
+            onClick={() => window.location.reload()}
+          >
+            Reload
+          </button>
+        </div>
+      </section>
+    );
+  }
+
+  if (notFound || !listing) {
+    return (
+      <section className="listing-details-area">
+        <div className="container py-5 text-center">
+          <h1>Listing not found</h1>
+          <p className="mt-3">
+            This business listing may have been removed or is no longer available.
+          </p>
+          <Link href="/business-listings" className="btn-add d-inline-flex mt-4">
+            Back to Business Listings
+          </Link>
+        </div>
+      </section>
+    );
+  }
+
+  const logoPath = listing.logo ? String(listing.logo) : "";
+
+  const logoUrl = logoPath
+    ? logoPath.startsWith("http")
+      ? logoPath
+      : logoPath.startsWith("storage/")
+        ? `${SITE_URL}/${logoPath}`
+        : `${STORAGE_URL}/${logoPath}`
     : "/assets/img/default-logo.png";
 
   const location = [

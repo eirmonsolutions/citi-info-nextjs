@@ -322,9 +322,13 @@ const BusinessListingContent = ({
                         <div className="front-listing-header">
                           <div className="front-listing-title">
                             <h3>
-                              <Link href={`/business-listings/${item.slug}`}>
-                                {item.business_name}
-                              </Link>
+                              {item.slug ? (
+                                <Link href={`/business-listings/${item.slug}`}>
+                                  {item.business_name}
+                                </Link>
+                              ) : (
+                                <span>{item.business_name}</span>
+                              )}
                             </h3>
                           </div>
 

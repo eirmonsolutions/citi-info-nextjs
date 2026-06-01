@@ -6,8 +6,11 @@ import { ChevronDown } from "lucide-react";
 const FAQSection = ({ listing }) => {
   const [activeIndex, setActiveIndex] = useState(null);
 
-  const allItems =
-    listing?.faqs?.flatMap((faq) => faq.items || []) || [];
+  const faqGroups = Array.isArray(listing?.faqs) ? listing.faqs : [];
+
+  const allItems = faqGroups.flatMap((faq) =>
+    Array.isArray(faq?.items) ? faq.items : []
+  );
 
   const filteredFaqs = allItems.filter(
     (item) => item?.question?.trim() && item?.answer?.trim()

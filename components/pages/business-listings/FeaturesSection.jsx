@@ -2,7 +2,8 @@
 
 import React from "react";
 
-const STORAGE_URL = "http://localhost:8000/storage";
+const STORAGE_URL =
+  process.env.NEXT_PUBLIC_STORAGE_URL || "http://localhost:8000/storage";
 
 const FeaturesSection = ({ listing }) => {
   const features = listing?.features || [];

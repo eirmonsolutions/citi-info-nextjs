@@ -4,26 +4,8 @@ import Link from "next/link";
 import { useState } from "react";
 import Swal from "sweetalert2";
 import { Eye, EyeOff } from "lucide-react";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
-
-const BACKEND_URL = API_URL.replace(/\/api\/?$/, "");
-
-const backendPath = (path = "") => {
-  if (!path) return BACKEND_URL;
-  if (path.startsWith("http")) return path;
-
-  return `${BACKEND_URL}/${path.replace(/^\/+/, "")}`;
-};
-
-const getCookie = (name) => {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) {
-    return decodeURIComponent(parts.pop().split(";").shift());
-  }
-  return "";
-};
+import { loginWithSanctum, resolveLoginRedirect } from "@/lib/api/auth";
+import { apiFetch } from "@/lib/api/client";
 
 export default function AuthForm({ type = "login" }) {
   const isLogin = type === "login";
@@ -52,81 +34,61 @@ export default function AuthForm({ type = "login" }) {
     setLoading(true);
 
     try {
-      await fetch(`${API_URL}/sanctum/csrf-cookie`, {
-        credentials: "include",
-      });
+      if (isLogin) {
+        const data = await loginWithSanctum({
+          email: form.email,
+          password: form.password,
+          remember: form.remember,
+        });
 
-      const xsrfToken = getCookie("XSRF-TOKEN");
+        Swal.fire({
+          icon: "success",
+          title: "Login Successful!",
+          text: data.message || "Welcome back to Citiinfo.",
+          confirmButtonColor: "#087df2",
+        }).then(() => {
+          window.location.href = resolveLoginRedirect(
+            data.redirect_to,
+            data.user
+          );
+        });
 
-      const url = isLogin ? `${API_URL}/login` : `${API_URL}/register`;
+        return;
+      }
 
-      const payload = isLogin
-        ? {
-            email: form.email,
-            password: form.password,
-            remember: form.remember,
-          }
-        : {
-            name: form.name,
-            email: form.email,
-            password: form.password,
-            agree_terms: form.agree_terms,
-          };
-
-      const res = await fetch(url, {
+      const data = await apiFetch("/register", {
         method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          "X-Requested-With": "XMLHttpRequest",
-          "X-XSRF-TOKEN": xsrfToken,
-        },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email,
+          password: form.password,
+          agree_terms: form.agree_terms,
+        }),
       });
 
-      const data = await res.json();
-
-      if (!res.ok || data.ok === false) {
+      if (data.ok === false) {
         Swal.fire({
           icon: "error",
-          title: isLogin ? "Login Failed" : "Registration Failed",
+          title: "Registration Failed",
           text: data.message || "Please check your details and try again.",
           confirmButtonColor: "#087df2",
         });
         return;
       }
 
-      if (isLogin) {
-        localStorage.setItem("token", data.token || "");
-
-        if (data.user) {
-          localStorage.setItem("user", JSON.stringify(data.user));
-        }
-
-        Swal.fire({
-          icon: "success",
-          title: "Login Successful!",
-          text: "Welcome back to Citiinfo.",
-          confirmButtonColor: "#087df2",
-        }).then(() => {
-          window.location.href = backendPath(data.redirect_to);
-        });
-      } else {
-        Swal.fire({
-          icon: "success",
-          title: "Registration Successful!",
-          text: "Your account has been created successfully. Please login now.",
-          confirmButtonColor: "#087df2",
-        }).then(() => {
-          window.location.href = "/login";
-        });
-      }
+      Swal.fire({
+        icon: "success",
+        title: "Registration Successful!",
+        text: "Your account has been created successfully. Please login now.",
+        confirmButtonColor: "#087df2",
+      }).then(() => {
+        window.location.href = "/login";
+      });
     } catch (error) {
       Swal.fire({
         icon: "error",
-        title: "Server Error",
-        text: "Something went wrong. Please try again.",
+        title: isLogin ? "Login Failed" : "Server Error",
+        text: error.message || "Something went wrong. Please try again.",
         confirmButtonColor: "#087df2",
       });
     } finally {

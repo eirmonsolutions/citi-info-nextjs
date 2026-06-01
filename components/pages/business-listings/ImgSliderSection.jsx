@@ -7,7 +7,8 @@ import { Autoplay, Pagination } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/pagination";
 
-const STORAGE_URL = "http://localhost:8000/storage";
+const STORAGE_URL =
+  process.env.NEXT_PUBLIC_STORAGE_URL || "http://localhost:8000/storage";
 
 const ImgSliderSection = ({ listing }) => {
   const galleryImages =
@@ -67,82 +68,6 @@ const ImgSliderSection = ({ listing }) => {
           ))}
         </Swiper>
       </div>
-
-      <style jsx>{`
-        .detail-slider {
-          width: 100%;
-          border-radius: 20px;
-          overflow: hidden;
-          position: relative;
-          margin-bottom: 30px;
-          background: #f3f4f6;
-        }
-
-        :global(.business-detail-slider) {
-          width: 100%;
-          height: 100%;
-          display: block;
-        }
-
-        :global(.business-detail-slider .swiper-wrapper) {
-          align-items: stretch;
-        }
-
-        :global(.business-detail-slider .swiper-slide) {
-          width: 100%;
-          height: auto;
-          overflow: hidden;
-          border-radius: 20px;
-        }
-
-        .slide-inner {
-          position: relative;
-          width: 100%;
-          height: 460px;
-          overflow: hidden;
-          border-radius: 20px;
-        }
-
-        .slider-img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          display: block;
-          border-radius: 20px;
-        }
-
-        :global(.swiper-pagination) {
-          bottom: 18px !important;
-        }
-
-        :global(.swiper-pagination-bullet) {
-          width: 45px;
-          height: 4px;
-          border-radius: 20px;
-          background: rgba(255, 255, 255, 0.6);
-          opacity: 1;
-          transition: all 0.3s ease;
-        }
-
-        :global(.swiper-pagination-bullet-active) {
-          width: 70px;
-          background: #0d6efd;
-        }
-
-        @media (max-width: 768px) {
-          .slide-inner {
-            height: 250px;
-          }
-
-          :global(.swiper-pagination-bullet) {
-            width: 30px;
-          }
-
-          :global(.swiper-pagination-bullet-active) {
-            width: 50px;
-          }
-        }
-      `}</style>
     </>
   );
 };

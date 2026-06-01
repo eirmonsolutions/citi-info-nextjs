@@ -19,10 +19,12 @@ const ServicesSection = ({ listing }) => {
         <div className="services-list">
           <ul>
             {filteredServices.map((service, index) => {
+              const priceNumber = Number(service.price);
               const hasPrice =
                 service.price !== null &&
                 service.price !== "" &&
-                Number(service.price) > 0;
+                !Number.isNaN(priceNumber) &&
+                priceNumber > 0;
 
               return (
                 <li key={service.id || index}>
@@ -32,8 +34,8 @@ const ServicesSection = ({ listing }) => {
 
                   {hasPrice && (
                     <div className="services-price">
-                      {(service.currency || "$")}
-                      {Number(service.price).toFixed(2)}
+                      {service.currency || "$"}
+                      {priceNumber.toFixed(2)}
                     </div>
                   )}
                 </li>
