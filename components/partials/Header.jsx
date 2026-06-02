@@ -22,6 +22,17 @@ const LOGIN_URL =
   process.env.NEXT_PUBLIC_LOGIN_URL ||
   "https://api.citiinfo.com.au/login";
 
+const getStoredUser = () => {
+  if (typeof window === "undefined") return null;
+
+  try {
+    const raw = localStorage.getItem("user");
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+};
+
 export default function Header() {
   const pathname = usePathname();
 
@@ -50,6 +61,17 @@ export default function Header() {
     const fetchAuthUser = async () => {
       try {
         const token = localStorage.getItem("token");
+        const storedUser = getStoredUser();
+
+        if (token && storedUser) {
+          setAuthUser(storedUser);
+        }
+
+        if (!token && !storedUser) {
+          setAuthUser(null);
+          return;
+        }
+
         const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.citiinfo.com.au/api";
 
         const res = await fetch(`${apiBase}/auth-user`, {
@@ -63,11 +85,14 @@ export default function Header() {
           cache: "no-store",
         });
 
-        if (!res.ok) return setAuthUser(null);
+        if (!res.ok) {
+          // Keep local fallback user when auth endpoint fails temporarily.
+          return setAuthUser(storedUser || null);
+        }
         const data = await res.json();
         setAuthUser(data?.authenticated ? data.user : null);
       } catch {
-        setAuthUser(null);
+        setAuthUser(getStoredUser());
       }
     };
 

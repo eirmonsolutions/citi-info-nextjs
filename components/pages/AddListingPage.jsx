@@ -45,6 +45,20 @@ const dayKeys = [
     "sunday",
 ];
 
+const getAustraliaCountry = (list = []) =>
+    list.find((item) => {
+        const name = String(item?.name || "").toLowerCase().trim();
+        const code = String(item?.code || item?.country_code || "").toLowerCase().trim();
+        const shortCode = String(item?.sortname || "").toLowerCase().trim();
+
+        return (
+            name === "australia" ||
+            code === "au" ||
+            code === "aus" ||
+            shortCode === "au"
+        );
+    }) || null;
+
 const CustomSelect = ({
     id,
     label,
@@ -296,9 +310,21 @@ const AddListingPage = () => {
             const countryData = await countryRes.json();
             const featureData = await featureRes.json();
 
-            setCategories(catData.data || catData || []);
-            setCountries(countryData.data || countryData || []);
-            setFeaturesList(featureData.data || featureData || []);
+            const categoryOptions = catData.data || catData || [];
+            const countryOptions = countryData.data || countryData || [];
+            const featureOptions = featureData.data || featureData || [];
+            const australia = getAustraliaCountry(countryOptions);
+
+            setCategories(categoryOptions);
+            setCountries(countryOptions);
+            setFeaturesList(featureOptions);
+
+            if (australia?.id) {
+                setFormData((prev) => ({
+                    ...prev,
+                    country: prev.country || australia.id,
+                }));
+            }
         } catch (error) {
             console.error(error);
         }
@@ -591,11 +617,13 @@ const AddListingPage = () => {
             setMessage("");
             setStep(1);
 
+            const australia = getAustraliaCountry(countries);
+
             setFormData({
                 business_name: "",
                 category_id: "",
                 category: "",
-                country: "",
+                country: australia?.id || "",
                 state: "",
                 city: "",
                 address: "",
@@ -752,11 +780,12 @@ const AddListingPage = () => {
                                                     id="country"
                                                     label="Country"
                                                     required
-                                                    placeholder="Select country"
+                                                    placeholder="Australia"
                                                     options={countries}
                                                     value={formData.country}
                                                     openSelect={openSelect}
                                                     setOpenSelect={setOpenSelect}
+                                                    disabled
                                                     error={fieldErrors.country}
                                                     onSelect={(item) => {
                                                         clearFieldError("country");
