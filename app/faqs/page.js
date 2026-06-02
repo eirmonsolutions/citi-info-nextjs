@@ -2,9 +2,9 @@ import PageLayout from "@/components/partials/PageLayout";
 import FaqsPage from "@/components/pages/resources/FaqsPage";
 
 export const metadata = {
-  title: "FAQs | Citiinfo Australia Business Directory",
+  title: "Frequently Asked Questions | Citiinfo Australia Business Directory",
   description:
-    "Frequently asked questions about using Citiinfo, adding a business listing, accounts, and privacy.",
+    "Find answers to common questions on Citiinfo, Australia’s top business directory. Learn how to list a business, leave reviews, and more.",
 };
 
 export default function Page() {

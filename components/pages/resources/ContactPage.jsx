@@ -14,21 +14,25 @@ export default function ContactPage() {
     subject: "",
     message: "",
   });
+
   const [loading, setLoading] = useState(false);
+
+  const API_URL =
+    process.env.NEXT_PUBLIC_API_URL || "https://api.citiinfo.com.au/api";
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (
-      !form.name.trim() ||
-      !form.email.trim() ||
-      !form.message.trim()
-    ) {
+    if (!form.name.trim() || !form.email.trim() || !form.message.trim()) {
       Swal.fire({
         icon: "warning",
         title: "Required Fields",
@@ -41,10 +45,27 @@ export default function ContactPage() {
     setLoading(true);
 
     try {
+      const response = await fetch(`${API_URL}/contact`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify(form),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Something went wrong.");
+      }
+
       await Swal.fire({
         icon: "success",
         title: "Message Sent!",
-        text: "Thank you for contacting Citiinfo. Our team will respond as soon as possible.",
+        text:
+          data.message ||
+          "Thank you for contacting Citiinfo. Our team will respond as soon as possible.",
         confirmButtonColor: "#087df2",
       });
 
@@ -54,6 +75,15 @@ export default function ContactPage() {
         phone: "",
         subject: "",
         message: "",
+      });
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Message Not Sent",
+        text:
+          error.message ||
+          "Unable to send your message right now. Please try again later.",
+        confirmButtonColor: "#087df2",
       });
     } finally {
       setLoading(false);
@@ -72,6 +102,7 @@ export default function ContactPage() {
         <div className="contact-page-grid">
           <div className="contact-info-card">
             <h2>Get in Touch</h2>
+
             <ul className="contact-info-list">
               <li>
                 <MapPin size={22} color="#087df2" />
@@ -80,6 +111,7 @@ export default function ContactPage() {
                   <span>Australia</span>
                 </div>
               </li>
+
               <li>
                 <Phone size={22} color="#087df2" />
                 <div>
@@ -87,6 +119,7 @@ export default function ContactPage() {
                   <a href="tel:+611300000000">1300 000 000</a>
                 </div>
               </li>
+
               <li>
                 <Mail size={22} color="#087df2" />
                 <div>
@@ -96,6 +129,7 @@ export default function ContactPage() {
                   </a>
                 </div>
               </li>
+
               <li>
                 <Clock size={22} color="#087df2" />
                 <div>
@@ -108,6 +142,7 @@ export default function ContactPage() {
 
           <div className="contact-form-card">
             <h2>Send a Message</h2>
+
             <form onSubmit={handleSubmit}>
               <div className="form-group">
                 <label htmlFor="name">
@@ -119,8 +154,10 @@ export default function ContactPage() {
                   value={form.name}
                   onChange={handleChange}
                   placeholder="John Doe"
+                  autoComplete="name"
                 />
               </div>
+
               <div className="form-group">
                 <label htmlFor="email">
                   Email <span style={{ color: "#ef4444" }}>*</span>
@@ -132,8 +169,10 @@ export default function ContactPage() {
                   value={form.email}
                   onChange={handleChange}
                   placeholder="you@example.com"
+                  autoComplete="email"
                 />
               </div>
+
               <div className="form-group">
                 <label htmlFor="phone">Phone</label>
                 <input
@@ -143,8 +182,10 @@ export default function ContactPage() {
                   value={form.phone}
                   onChange={handleChange}
                   placeholder="0412 345 678"
+                  autoComplete="tel"
                 />
               </div>
+
               <div className="form-group">
                 <label htmlFor="subject">Subject</label>
                 <input
@@ -155,6 +196,7 @@ export default function ContactPage() {
                   placeholder="Listing enquiry"
                 />
               </div>
+
               <div className="form-group">
                 <label htmlFor="message">
                   Message <span style={{ color: "#ef4444" }}>*</span>
@@ -165,8 +207,10 @@ export default function ContactPage() {
                   value={form.message}
                   onChange={handleChange}
                   placeholder="How can we help you?"
+                  rows={6}
                 />
               </div>
+
               <button
                 type="submit"
                 className="contact-submit"

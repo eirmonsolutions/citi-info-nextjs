@@ -1,5 +1,7 @@
 import React from "react";
 import "../../public/assets/css/AboutUsPage.css";
+import Link from "next/link";
+
 
 const IconSearch = () => (
     <svg width="34" height="34" viewBox="0 0 24 24" fill="none">
@@ -68,16 +70,9 @@ const AboutUsPage = () => {
                     <div>
                         <span className="eyebrow">Australia Business Directory</span>
                         <h1>About Citiinfo</h1>
-                        <p>
-                            Citiinfo helps people discover trusted local businesses, compare services,
-                            and connect with providers across Australia.
-                        </p>
 
-                        <div className="about-search-box">
-                            <IconSearch />
-                            <input placeholder="Search businesses, services or categories..." />
-                            <button>Search</button>
-                        </div>
+
+
                     </div>
 
                     <div className="hero-visual">
@@ -98,17 +93,19 @@ const AboutUsPage = () => {
                         <span className="section-tag">Who We Are</span>
                         <h2>About Citiinfo</h2>
                         <p>
-                            Citiinfo is a modern Australian business directory designed to help users
-                            easily discover trusted local businesses and services.
+                            <Link href="https://citiinfo.com.au/">Citiinfo</Link> is a modern Australia business directory designed to help people easily discover trusted local businesses and services. Our platform connects users with companies across major Australian cities including Melbourne, Sydney, Brisbane, Perth, and Adelaide.
                         </p>
+
                         <p>
-                            Whether you are searching for a plumber, restaurant, beauty salon,
-                            real estate agency, hospital, dentist, or skip bin hire company,
-                            Citiinfo helps you find the right business quickly.
+                            Whether you are searching for a reliable plumber, a nearby restaurant, a beauty salon, or a car rental service, Citiinfo helps you find the right business quickly and conveniently.
                         </p>
+
                         <p>
-                            For business owners, Citiinfo provides a simple way to create listings,
-                            showcase services, display contact details, and reach more local customers.
+                            Our directory includes a wide range of industries such as restaurants, salons, dentists, hospitals, plumbers, real estate agencies, towing services, skip bin hire companies, and many other local service providers.
+                        </p>
+
+                        <p>
+                            Citiinfo also helps businesses grow their online presence by allowing them to <Link href="https://citiinfo.com.au/add-listing"> create business listings,</Link> showcase services, display contact information, and reach more customers across Australia.
                         </p>
                     </div>
 
@@ -123,18 +120,18 @@ const AboutUsPage = () => {
                         <div className="stats-grid">
                             <div className="stat-card blue">
                                 <IconBuilding />
-                                <strong>10K+</strong>
-                                <span>Local Businesses</span>
+                                <strong>100+</strong>
+                                <span>Business Listings</span>
                             </div>
                             <div className="stat-card green">
                                 <IconMap />
                                 <strong>50+</strong>
-                                <span>Australian Cities</span>
+                                <span>Australian Locations</span>
                             </div>
                             <div className="stat-card purple">
                                 <IconUsers />
-                                <strong>25K+</strong>
-                                <span>Growing Users</span>
+                                <strong>5K+</strong>
+                                <span>Monthly Visitors</span>
                             </div>
                         </div>
                     </div>
@@ -145,29 +142,29 @@ const AboutUsPage = () => {
                 <div className="container">
                     <div className="section-center">
                         <span className="section-tag">What We Do</span>
-                        <h2>How Citiinfo Helps You</h2>
+                        <h2>How Citiinfo Helps You Connect with Local Businesses</h2>
                     </div>
 
                     <div className="help-grid">
                         <div className="help-card blue">
                             <IconSearch />
                             <h3>Discover Local Businesses</h3>
-                            <p>Find trusted businesses near you across multiple categories.</p>
+                            <p>Find trusted businesses, services, and professionals across Australia.</p>
                         </div>
                         <div className="help-card green">
                             <IconCompare />
-                            <h3>Compare Services</h3>
-                            <p>Compare ratings, services, and business details before choosing.</p>
+                            <h3>Compare Businesses</h3>
+                            <p>Compare services, ratings, business information, and contact details.</p>
                         </div>
                         <div className="help-card purple">
                             <IconHandshake />
-                            <h3>Connect With Providers</h3>
-                            <p>Reach businesses quickly through phone, email, website, or address.</p>
+                            <h3>Connect with Service Providers</h3>
+                            <p>contact businesses through phone, email, website, social profiles, or location details</p>
                         </div>
                         <div className="help-card orange">
                             <IconMegaphone />
                             <h3>Promote Your Business</h3>
-                            <p>Create a listing and improve your local online visibility.</p>
+                            <p>Create a business listing on Citiinfo and increase your visibility.</p>
                         </div>
                     </div>
                 </div>
@@ -177,7 +174,7 @@ const AboutUsPage = () => {
                 <div className="container">
                     <div className="section-center">
                         <span className="section-tag">Why Businesses Trust Citiinfo</span>
-                        <h2>Built for Local. Built for Growth.</h2>
+                        <h2>Built to Help Australian Businesses Grow</h2>
                     </div>
 
                     <div className="trust-grid">
@@ -185,28 +182,28 @@ const AboutUsPage = () => {
                             <IconShield />
                             <div>
                                 <h3>Easy to Search</h3>
-                                <p>Simple and user-friendly browsing for everyone.</p>
+                                <p>Find local businesses quickly and easily.</p>
                             </div>
                         </div>
                         <div className="trust-item green">
                             <IconBuilding />
                             <div>
                                 <h3>Free Business Listings</h3>
-                                <p>Businesses can create and manage profiles easily.</p>
+                                <p>Create and manage listings for free.</p>
                             </div>
                         </div>
                         <div className="trust-item purple">
                             <IconMegaphone />
                             <div>
-                                <h3>Local SEO Support</h3>
-                                <p>Improve visibility and get discovered by local customers.</p>
+                                <h3>Local SEO Benefits</h3>
+                                <p>Improve visibility in local search results.</p>
                             </div>
                         </div>
                         <div className="trust-item orange">
                             <IconShield />
                             <div>
-                                <h3>Verified Details</h3>
-                                <p>Accurate business information for trusted connections.</p>
+                                <h3>Verified Business Information</h3>
+                                <p>Accurate details for trusted business connections.</p>
                             </div>
                         </div>
                     </div>
@@ -217,8 +214,7 @@ const AboutUsPage = () => {
                             <div>
                                 <h3>Our Mission</h3>
                                 <p>
-                                    To create a reliable local business discovery platform that helps
-                                    people find trusted services while supporting businesses online.
+                                    To make finding local businesses easier by creating a trusted online directory that connects Australian consumers with reliable service providers while helping businesses grow their digital presence.
                                 </p>
                             </div>
                         </div>
@@ -228,8 +224,7 @@ const AboutUsPage = () => {
                             <div>
                                 <h3>Our Vision</h3>
                                 <p>
-                                    To become one of Australia’s leading business directories,
-                                    helping customers quickly connect with reliable local providers.
+                                    To become Australia's preferred business directory platform by helping local businesses gain visibility and making it easier for customers to discover quality services in their communities.
                                 </p>
                             </div>
                         </div>
@@ -237,12 +232,12 @@ const AboutUsPage = () => {
 
                     <div className="about-cta">
                         <div>
-                            <h2>Ready to grow your local visibility?</h2>
-                            <p>Join Australian businesses already listed on Citiinfo.</p>
+                            <h2>Ready to Grow Your Business Online?</h2>
+                            <p>Join thousands of Australian businesses using Citiinfo to increase visibility, attract more customers, and build a stronger local presence.</p>
                         </div>
                         <div className="cta-buttons">
                             <a href="/add-listing" className="btn-primary">+ Add Your Business</a>
-                            <a href="/business-listings" className="btn-outline">Browse Listings</a>
+                            <a href="/business-listings" className="btn-outline">Explore Business Listings</a>
                         </div>
                     </div>
                 </div>

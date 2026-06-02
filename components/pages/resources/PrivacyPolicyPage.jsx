@@ -8,35 +8,40 @@ const sections = [
   {
     title: "Information We Collect",
     content: (
-      <p>
-        When you use Citiinfo, we may collect information you provide directly—such
-        as your name, email address, phone number, and business details when you
-        create a listing or contact a business. We also collect technical data
-        like browser type, device information, and pages visited to improve our
-        Australia business directory.
-      </p>
+      <>
+        <p>
+          We collect personal information that you provide directly, such as:
+        </p>
+        <ul>
+          <li>Name, Email Address, Phone Number</li>
+          <li>Account information</li>
+          <li>Payment details (if applicable)</li>
+        </ul>
+        <p>
+          We may also collect technical data including IP addresses, browser type, and usage data to improve our website’s functionality and user experience.
+        </p>
+      </>
     ),
   },
   {
-    title: "How We Use Information",
+    title: "How We Use Your Information",
     content: (
-      <p>
-        We use your information to operate and improve Citiinfo, display business
-        listings, process enquiries, send service-related communications, and
-        help users find local businesses and services across Australia. We do not
-        sell your personal information to third parties.
-      </p>
+      <>
+        <p>Your personal information may be used for:</p>
+        <ul>
+          <li>Providing and improving our services</li>
+          <li>Sending notifications and updates</li>
+          <li>Processing payments</li>
+          <li>Responding to inquiries and feedback</li>
+        </ul>
+      </>
     ),
   },
   {
-    title: "Cookies Policy",
+    title: "Sharing Your Information",
     content: (
       <p>
-        Citiinfo uses cookies and similar technologies to remember your
-        preferences, keep you signed in, analyse site traffic, and improve search
-        and listing performance. You can manage cookies through your browser
-        settings, though some features may not work correctly if cookies are
-        disabled.
+        We do not sell or rent your personal information to third parties. We may share your data with trusted service providers who assist in running the platform (such as payment processors or hosting providers), or as required by law.
       </p>
     ),
   },
@@ -44,33 +49,47 @@ const sections = [
     title: "Data Security",
     content: (
       <p>
-        We implement reasonable technical and organisational measures to protect
-        your data against unauthorised access, alteration, or disclosure. No
-        method of transmission over the internet is completely secure, and we
-        encourage users to use strong passwords and protect their account
-        credentials.
+        We use industry-standard security measures to protect your data from unauthorized access, alteration, disclosure, or destruction. However, no method of transmission over the internet is 100% secure.
       </p>
     ),
   },
   {
-    title: "Third-Party Services",
+    title: "Your Rights",
+    content: (
+      <>
+        <p>You have the right to:</p>
+        <ul>
+          <li>Access, correct, or delete your personal information</li>
+          <li>
+            Opt-out of marketing communications at any time by contacting us
+          </li>
+        </ul>
+      </>
+    ),
+  },
+  {
+    title: "Cookies",
     content: (
       <p>
-        Our website may link to external business websites, payment providers,
-        maps, or analytics tools. Citiinfo is not responsible for the privacy
-        practices of third-party sites. We recommend reviewing their policies
-        before sharing personal information.
+        We use cookies to improve your experience, remember your preferences, and analyze traffic. You can manage your cookie settings through your browser preferences.
       </p>
     ),
   },
   {
-    title: "User Rights",
+    title: "Third-Party Websites",
     content: (
       <p>
-        Depending on applicable law, you may request access to, correction of, or
-        deletion of your personal data. You may also opt out of marketing
-        communications at any time. To exercise your rights, contact us using the
-        details on our Contact Us page.
+        Our website may contain links to third-party sites. We are not responsible for their privacy practices or content.
+      </p>
+    ),
+  },
+  {
+    title: "Changes to This Policy",
+    content: (
+      <p>
+        We may update this Privacy Policy from time to time to reflect changes
+        in our services, legal requirements, or business practices. Any updates
+        will be posted on this page along with the revised effective date.
       </p>
     ),
   },
@@ -78,9 +97,11 @@ const sections = [
     title: "Contact Information",
     content: (
       <p>
-        For privacy-related questions, please visit our{" "}
-        <a href="/contact-us">Contact Us</a> page or email{" "}
-        <a href="mailto:privacy@citiinfo.com.au">privacy@citiinfo.com.au</a>.
+        For questions regarding our Privacy Policy, please contact us at{" "}
+        <a href="mailto:support@citiinfo.com.au">
+          support@citiinfo.com.au
+        </a>
+        .
       </p>
     ),
   },
@@ -92,7 +113,7 @@ export default function PrivacyPolicyPage() {
       <ResourceHero
         variant="privacy-hero"
         title="Privacy Policy"
-        description="Learn how Citiinfo collects, uses, and protects your information when you browse our Australia business directory or list your business."
+        description="At Citiinfo, we value your privacy and are committed to protecting your personal information. This Privacy Policy explains what information we collect, how we use it, and the choices you have regarding your data."
         meta="Last updated: June 2026"
         icon={
           <span className="shield">

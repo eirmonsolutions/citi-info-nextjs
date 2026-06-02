@@ -41,8 +41,8 @@ export default function Header() {
     "/contact-us",
     "/faqs",
     "/how-it-works",
-    "/terms",
-    "/privacy",
+    "/terms-and-conditions",
+    "/privacy-policy",
     "/disclaimer",
   ].some((path) => pathname.startsWith(path));
 
@@ -50,8 +50,9 @@ export default function Header() {
     const fetchAuthUser = async () => {
       try {
         const token = localStorage.getItem("token");
+        const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.citiinfo.com.au/api";
 
-        const res = await fetch(`${BASE_URL}/api/auth-user`, {
+        const res = await fetch(`${apiBase}/auth-user`, {
           method: "GET",
           credentials: "include",
           headers: {
@@ -62,19 +63,17 @@ export default function Header() {
           cache: "no-store",
         });
 
+        if (!res.ok) return setAuthUser(null);
         const data = await res.json();
-
-        if (data.authenticated) {
-          setAuthUser(data.user);
-        } else {
-          setAuthUser(null);
-        }
-      } catch (error) {
+        setAuthUser(data?.authenticated ? data.user : null);
+      } catch {
         setAuthUser(null);
       }
     };
 
     fetchAuthUser();
+    window.addEventListener("focus", fetchAuthUser);
+    return () => window.removeEventListener("focus", fetchAuthUser);
   }, []);
 
   const logout = async () => {
@@ -248,8 +247,8 @@ export default function Header() {
               <Link href="/contact-us"><span className="dd-icon"><PhoneCall size={18} /></span>Contact Us</Link>
               <Link href="/faqs"><span className="dd-icon"><CircleQuestionMark size={18} /></span>FAQs</Link>
               <Link href="/how-it-works"><span className="dd-icon"><Settings size={18} /></span>How It Works</Link>
-              <Link href="/terms"><span className="dd-icon"><FileText size={18} /></span>Terms & Conditions</Link>
-              <Link href="/privacy"><span className="dd-icon"><ShieldCheck size={18} /></span>Privacy Policy</Link>
+              <Link href="/terms-and-conditions"><span className="dd-icon"><FileText size={18} /></span>Terms & Conditions</Link>
+              <Link href="/privacy-policy"><span className="dd-icon"><ShieldCheck size={18} /></span>Privacy Policy</Link>
               <Link href="/disclaimer"><span className="dd-icon"><Info size={18} /></span>Disclaimer</Link>
             </div>
           </div>

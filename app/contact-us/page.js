@@ -4,7 +4,7 @@ import ContactPage from "@/components/pages/resources/ContactPage";
 export const metadata = {
   title: "Contact Us | Citiinfo Australia Business Directory",
   description:
-    "Contact the Citiinfo team for listing support, account help, or general enquiries about our Australia business directory.",
+    "Get in touch with Citiinfo for inquiries, business listing support, or feedback. We're here to help! Reach out to our team for assistance.",
 };
 
 export default function Page() {

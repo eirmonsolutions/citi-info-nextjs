@@ -3,38 +3,21 @@ import "../../../public/assets/css/ResourcePages.css";
 import ResourceHero from "./ResourceHero";
 import SectionList from "./SectionList";
 import { AlertTriangle } from "lucide-react";
-
+import Link from "next/link";
 const sections = [
   {
-    title: "General Information",
+    title: "Introduction",
     content: (
       <p>
-        The content on Citiinfo is provided for general information purposes
-        only. While we strive to maintain an accurate Australia business
-        directory, we make no guarantees about the completeness or suitability of
-        any listing, review, or page content.
+        The information provided on Citiinfo is for general informational purposes only. We do our best to ensure the accuracy of all content, but we make no guarantees regarding the reliability or completeness of the information.
       </p>
     ),
   },
   {
-    title: "External Links Disclaimer",
+    title: "No Professional Advice",
     content: (
       <p>
-        Citiinfo may contain links to third-party websites, including business
-        websites and social profiles. We are not responsible for the content,
-        availability, or practices of external sites. Visiting linked websites is
-        at your own risk.
-      </p>
-    ),
-  },
-  {
-    title: "Accuracy of Information",
-    content: (
-      <p>
-        Business names, addresses, phone numbers, hours, services, and images are
-        submitted by listing owners or gathered from public sources. Information
-        may change without notice. Users should verify details directly with the
-        business before making decisions.
+        Any content provided on Citiinfo should not be construed as professional advice. Always consult with a qualified professional for specific advice in areas such as legal, medical, or financial matters.
       </p>
     ),
   },
@@ -42,19 +25,49 @@ const sections = [
     title: "Limitation of Liability",
     content: (
       <p>
-        To the fullest extent permitted by law, Citiinfo and its operators shall
-        not be liable for any loss or damage arising from your use of the website,
-        reliance on listings or reviews, or interactions with businesses found
-        through our directory.
+        Citiinfo is not liable for any direct, indirect, incidental, or consequential damages arising from your use of the platform. We are not responsible for any errors or omissions in content provided by third-party users or businesses.
       </p>
     ),
   },
   {
-    title: "Contact Us",
+    title: "External Links",
     content: (
       <p>
-        If you have questions about this disclaimer, please visit our{" "}
-        <a href="/contact-us">Contact Us</a> page.
+        Our website may contain links to third-party sites. Citiinfo is not responsible for the content, privacy policies, or practices of these external sites.
+      </p>
+    ),
+  },
+  {
+    title: "Affiliate Links",
+    content: (
+      <p>
+        Some links on Citiinfo may be affiliate links. If you make a purchase through these links, we may earn a commission at no additional cost to you.
+      </p>
+    ),
+  },
+  {
+    title: "No Endorsement",
+    content: (
+      <p>
+        The inclusion of businesses, individuals, or services on Citiinfo does not imply endorsement. We do not guarantee the quality or accuracy of services provided by listed businesses.
+      </p>
+    ),
+  },
+  {
+    title: "Changes to Disclaimer",
+    content: (
+      <p>
+        We may modify this Disclaimer from time to time. Any updates will be posted here with an updated date.
+      </p>
+    ),
+  },
+  {
+    title: "Contact Information",
+    content: (
+      <p>
+        For further inquiries or questions regarding this Disclaimer, please contact us at:
+        <br />
+        Email: <Link href="mailto:support@citiinfo.com.au">support@citiinfo.com.au</Link>
       </p>
     ),
   },

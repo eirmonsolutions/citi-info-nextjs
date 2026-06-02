@@ -349,7 +349,7 @@
 /* FAQ page */
 .faq-page-layout {
   display: grid;
-  grid-template-columns: 260px 1fr;
+  /* grid-template-columns: 260px 1fr; */
   gap: 28px;
   width: min(1180px, 92%);
   margin: 0 auto;
