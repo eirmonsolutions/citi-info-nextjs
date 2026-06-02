@@ -20,7 +20,7 @@ const BASE_URL =
 
 const LOGIN_URL =
   process.env.NEXT_PUBLIC_LOGIN_URL ||
-  "https://api.citiinfo.com.au/login";
+  "http://localhost:8000/login";
 
 export default function Header() {
   const pathname = usePathname();
