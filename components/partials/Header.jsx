@@ -21,20 +21,6 @@ const BASE_URL =
 const LOGIN_URL =
   process.env.NEXT_PUBLIC_LOGIN_URL ||
   "https://api.citiinfo.com.au/login";
-<<<<<<< Updated upstream
-
-const getStoredUser = () => {
-  if (typeof window === "undefined") return null;
-
-  try {
-    const raw = localStorage.getItem("user");
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
-};
-=======
->>>>>>> Stashed changes
 
 export default function Header() {
   const pathname = usePathname();

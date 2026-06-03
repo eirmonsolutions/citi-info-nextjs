@@ -420,7 +420,7 @@ const BusinessListingContent = ({
                           <span>{getCityName(item)}</span>
                         </div>
 
-                        {listingFeatures.length > 0 && (
+                        {/* {listingFeatures.length > 0 && (
                           <div className="listing-card-features">
                             {listingFeatures.map((feat, featIndex) => {
                               const featureImg = getFeatureImageUrl(feat);
@@ -445,7 +445,7 @@ const BusinessListingContent = ({
                               );
                             })}
                           </div>
-                        )}
+                        )} */}
                       </div>
                     </div>
                   </div>

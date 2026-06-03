@@ -14,16 +14,16 @@ export default function Footer() {
             &amp; services near you.
           </p>
           <div className="footer-social">
-            <a href="https://facebook.com" target="_blank" rel="noreferrer" aria-label="Facebook">
+            <a href="https://www.facebook.com/profile.php?id=100090399916917" target="_blank" rel="noreferrer" aria-label="Facebook">
               f
             </a>
-            <a href="https://twitter.com" target="_blank" rel="noreferrer" aria-label="Twitter">
+            <a href="https://x.com/Citiinfo1" target="_blank" rel="noreferrer" aria-label="Twitter">
               𝕏
             </a>
-            <a href="https://linkedin.com" target="_blank" rel="noreferrer" aria-label="LinkedIn">
-              in
+            <a href="https://au.pinterest.com/citiinfoaustralia/" target="_blank" rel="noreferrer" aria-label="Pinterest">
+              Pi
             </a>
-            <a href="https://instagram.com" target="_blank" rel="noreferrer" aria-label="Instagram">
+            <a href="https://www.instagram.com/citiinfoaustralia/" target="_blank" rel="noreferrer" aria-label="Instagram">
               ◎
             </a>
           </div>
@@ -45,9 +45,9 @@ export default function Footer() {
         <div className="footer-col">
           <h4>Legal</h4>
           <ul>
-            <li><Link href="/privacy">Privacy Policy</Link></li>
+            <li><Link href="/privacy-policy">Privacy Policy</Link></li>
             <li><Link href="/disclaimer">Disclaimer</Link></li>
-            <li><Link href="/terms">Terms &amp; Conditions</Link></li>
+            <li><Link href="/terms-and-conditions">Terms &amp; Conditions</Link></li>
             <li><Link href="/faqs">FAQ</Link></li>
           </ul>
         </div>
