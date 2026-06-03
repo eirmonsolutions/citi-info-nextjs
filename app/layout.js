@@ -29,7 +29,7 @@ export const metadata = {
     "business listing website",
   ],
   alternates: {
-    canonical: "http://localhost:8000/",
+    canonical: "https://api.citiinfo.com.au/",
   },
 };
 

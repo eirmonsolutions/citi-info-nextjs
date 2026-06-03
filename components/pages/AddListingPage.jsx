@@ -501,21 +501,30 @@ const AddListingPage = () => {
         return Object.keys(errors).length === 0;
     };
 
+    const scrollWizardToTop = () => {
+        requestAnimationFrame(() => {
+            window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+        });
+    };
+
     const nextStep = () => {
         if (!validateStep(step)) {
             setMessage("Please fill in all required fields before continuing.");
+            scrollWizardToTop();
             return;
         }
 
         setMessage("");
         setFieldErrors({});
         setStep((prev) => Math.min(prev + 1, 6));
+        scrollWizardToTop();
     };
 
     const prevStep = () => {
         setMessage("");
         setFieldErrors({});
         setStep((prev) => Math.max(prev - 1, 1));
+        scrollWizardToTop();
     };
 
     const handleSubmit = async (e) => {
@@ -1947,7 +1956,7 @@ const AddListingPage = () => {
                                                         const img = rawImg
                                                             ? rawImg.startsWith("http")
                                                                 ? rawImg
-                                                                : `http://localhost:8000/storage/${rawImg}`
+                                                                : `https://api.citiinfo.com.au/storage/${rawImg}`
                                                             : "";
 
                                                         return (

@@ -39,6 +39,8 @@ const BusinessListingContent = ({
 
   const isCategoryPage = !!categoryName;
   const firstLoad = useRef(true);
+  const skipScrollOnPageChange = useRef(true);
+  const listingsSectionRef = useRef(null);
 
   const [city, setCity] = useState("");
   const [querySearch, setQuerySearch] = useState("");
@@ -80,6 +82,27 @@ const BusinessListingContent = ({
   const getGalleryImages = (item) => {
     if (!item.gallery || !Array.isArray(item.gallery)) return [];
     return item.gallery;
+  };
+
+  const getListingFeatures = (item) => {
+    const features = item?.features || [];
+    return features
+      .filter((feat) => feat?.feature_name?.trim() || feat?.feature_image)
+      .slice(0, 8);
+  };
+
+  const getFeatureImageUrl = (feat) => {
+    const img = feat?.feature_image;
+    if (!img) return "";
+    const clean = String(img).replace(/^\/+/, "");
+    if (clean.startsWith("http")) return clean;
+    if (clean.startsWith("storage/")) return `${SITE_URL}/${clean}`;
+    return `${STORAGE_URL}/${clean}`;
+  };
+
+  const changePage = (pageNumber) => {
+    skipScrollOnPageChange.current = false;
+    setPage(pageNumber);
   };
 
   const getCategoryName = (item) => {
@@ -163,10 +186,24 @@ const BusinessListingContent = ({
     fetchListings(search, sort, page);
   }, [sort, page]);
 
+  useEffect(() => {
+    if (skipScrollOnPageChange.current || loading) return;
+
+    const scrollTarget = listingsSectionRef.current;
+
+    if (scrollTarget) {
+      const top =
+        scrollTarget.getBoundingClientRect().top + window.scrollY - 100;
+      window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [page, loading]);
+
   const noResultText = querySearch || search || city || categoryName || "your search";
 
   return (
-    <section className="popular-categories">
+    <section className="popular-categories" ref={listingsSectionRef}>
       <div className="container">
         {!isCategoryPage && (
           <div className="section-heading">
@@ -250,6 +287,7 @@ const BusinessListingContent = ({
                 const galleryImages = getGalleryImages(item);
                 const hasGallery = galleryImages.length > 0;
                 const hasMultipleGallery = galleryImages.length > 1;
+                const listingFeatures = getListingFeatures(item);
 
                 return (
                   <div
@@ -381,6 +419,33 @@ const BusinessListingContent = ({
                           <MapPin size={18} />
                           <span>{getCityName(item)}</span>
                         </div>
+
+                        {listingFeatures.length > 0 && (
+                          <div className="listing-card-features">
+                            {listingFeatures.map((feat, featIndex) => {
+                              const featureImg = getFeatureImageUrl(feat);
+
+                              return (
+                                <span
+                                  className="listing-feature-chip"
+                                  key={feat.id || featIndex}
+                                  title={feat.feature_name}
+                                >
+                                  {featureImg ? (
+                                    <img
+                                      src={featureImg}
+                                      alt={feat.feature_name || "Feature"}
+                                      loading="lazy"
+                                    />
+                                  ) : null}
+                                  <span className="listing-feature-name">
+                                    {feat.feature_name}
+                                  </span>
+                                </span>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -412,7 +477,7 @@ const BusinessListingContent = ({
                   <li className={`page-item ${page === 1 ? "disabled" : ""}`}>
                     <button
                       className="page-link"
-                      onClick={() => page > 1 && setPage(page - 1)}
+                      onClick={() => page > 1 && changePage(page - 1)}
                     >
                       «
                     </button>
@@ -428,7 +493,7 @@ const BusinessListingContent = ({
                       >
                         <button
                           className="page-link"
-                          onClick={() => setPage(pageNumber)}
+                          onClick={() => changePage(pageNumber)}
                         >
                           {pageNumber}
                         </button>
@@ -445,7 +510,7 @@ const BusinessListingContent = ({
                     <button
                       className="page-link"
                       onClick={() =>
-                        page < pagination.last_page && setPage(page + 1)
+                        page < pagination.last_page && changePage(page + 1)
                       }
                     >
                       »

@@ -2,7 +2,10 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import "../../../public/assets/css/BlogPages.css";
-import { fetchPublishedBlogs } from "@/lib/api/blog";
+import {
+  fetchPublishedBlogs,
+  fetchRecentPublishedBlogs,
+} from "@/lib/api/blog";
 import BlogCard from "./BlogCard";
 import BlogListSkeleton from "./BlogListSkeleton";
 import BlogSidebar from "./BlogSidebar";
@@ -23,14 +26,14 @@ export default function BlogListPage() {
       setError("");
 
       try {
-        const [listRes, recentRes] = await Promise.all([
+        const [listRes, recent] = await Promise.all([
           fetchPublishedBlogs({ page, perPage: 12 }),
-          fetchPublishedBlogs({ page: 1, perPage: 5 }),
+          fetchRecentPublishedBlogs().catch(() => []),
         ]);
 
         setBlogs(listRes.data || []);
         setMeta(listRes.meta || {});
-        setRecentPosts(recentRes.data || []);
+        setRecentPosts(recent);
       } catch (err) {
         setBlogs([]);
         setMeta({});

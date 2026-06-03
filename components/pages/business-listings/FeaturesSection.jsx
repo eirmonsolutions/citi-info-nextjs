@@ -3,7 +3,7 @@
 import React from "react";
 
 const STORAGE_URL =
-  process.env.NEXT_PUBLIC_STORAGE_URL || "http://localhost:8000/storage";
+  process.env.NEXT_PUBLIC_STORAGE_URL || "https://api.citiinfo.com.au/storage";
 
 const FeaturesSection = ({ listing }) => {
   const features = listing?.features || [];

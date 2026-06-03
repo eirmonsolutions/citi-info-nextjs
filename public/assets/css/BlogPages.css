@@ -281,6 +281,58 @@
   padding: 48px 0 72px;
 }
 
+.blog-detail-layout {
+  align-items: start;
+}
+
+.blog-detail-main {
+  min-width: 0;
+}
+
+.blog-detail-faq {
+  margin-top: 40px;
+  padding-top: 32px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.blog-detail-faq h3 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 8px;
+}
+
+.blog-detail-faq .faq-list .accordion-item {
+  border: 1px solid #e5e7eb;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.blog-detail-faq .accordion-button {
+  font-weight: 600;
+  font-size: 15px;
+  color: #111827;
+  background: #f9fafb;
+  box-shadow: none;
+}
+
+.blog-detail-faq .accordion-button:not(.collapsed) {
+  background: #eff6ff;
+  color: #087df2;
+}
+
+.blog-detail-faq .accordion-body {
+  color: #4b5563;
+  line-height: 1.75;
+  font-size: 15px;
+}
+
+.blog-detail-section .post-meta .post-date {
+  color: #6b7280;
+  font-size: 14px;
+}
+
 .blog-detail-wrap {
   width: min(900px, 92%);
   margin: 0 auto;

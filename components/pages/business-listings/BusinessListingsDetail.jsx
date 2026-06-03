@@ -19,10 +19,10 @@ import BusinessListingDetailSkeleton from "./BusinessListingDetailSkeleton";
 import { fetchListingBySlug } from "@/lib/fetchListingBySlug";
 
 const STORAGE_URL =
-  process.env.NEXT_PUBLIC_STORAGE_URL || "http://localhost:8000/storage";
+  process.env.NEXT_PUBLIC_STORAGE_URL || "https://api.citiinfo.com.au/storage";
 
 const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:8000";
+  process.env.NEXT_PUBLIC_SITE_URL || "https://api.citiinfo.com.au";
 
 const BusinessListingsDetail = ({ slug }) => {
   const [listing, setListing] = useState(null);

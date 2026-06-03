@@ -5,11 +5,15 @@ import Link from "next/link";
 import "../../../public/assets/css/BlogPages.css";
 import {
   fetchPublishedBlogBySlug,
-  fetchPublishedBlogs,
+  fetchRecentPublishedBlogs,
   formatBlogDate,
+  getBlogFaqItems,
   getBlogImageUrl,
 } from "@/lib/api/blog";
+import BlogFaqAccordion from "./BlogFaqAccordion";
 import BlogSidebar from "./BlogSidebar";
+
+const FAQ_SCHEMA_SCRIPT_ID = "blog-faq-schema";
 
 export default function BlogDetailPage({ slug }) {
   const [blog, setBlog] = useState(null);
@@ -33,21 +37,19 @@ export default function BlogDetailPage({ slug }) {
       setNotFound(false);
 
       try {
-        const [detailRes, recentRes] = await Promise.all([
+        const [detailRes, recent] = await Promise.all([
           fetchPublishedBlogBySlug(slug),
-          fetchPublishedBlogs({ page: 1, perPage: 5 }),
+          fetchRecentPublishedBlogs(slug).catch(() => []),
         ]);
 
         if (cancelled) return;
 
         setBlog(detailRes.data || null);
-        setRecentPosts(
-          (recentRes.data || []).filter((post) => post.slug !== slug)
-        );
+        setRecentPosts(recent);
       } catch (err) {
         if (cancelled) return;
 
-        if (err.status === 404) {
+        if (err.status === 404 || err.data?.ok === false) {
           setNotFound(true);
         } else {
           setError(
@@ -69,6 +71,42 @@ export default function BlogDetailPage({ slug }) {
     };
   }, [slug]);
 
+  useEffect(() => {
+    if (!blog) return;
+
+    if (blog.meta_title) {
+      document.title = blog.meta_title;
+    }
+
+    let metaDesc = document.querySelector('meta[name="description"]');
+
+    if (blog.meta_description) {
+      if (!metaDesc) {
+        metaDesc = document.createElement("meta");
+        metaDesc.setAttribute("name", "description");
+        document.head.appendChild(metaDesc);
+      }
+      metaDesc.setAttribute("content", blog.meta_description);
+    }
+  }, [blog]);
+
+  useEffect(() => {
+    const existing = document.getElementById(FAQ_SCHEMA_SCRIPT_ID);
+    existing?.remove();
+
+    if (!blog?.faq_schema) return;
+
+    const script = document.createElement("script");
+    script.type = "application/ld+json";
+    script.id = FAQ_SCHEMA_SCRIPT_ID;
+    script.text = JSON.stringify(blog.faq_schema);
+    document.head.appendChild(script);
+
+    return () => {
+      document.getElementById(FAQ_SCHEMA_SCRIPT_ID)?.remove();
+    };
+  }, [blog]);
+
   if (loading) {
     return (
       <main className="blog-page">
@@ -79,10 +117,22 @@ export default function BlogDetailPage({ slug }) {
         </section>
         <section className="blog-detail-section">
           <div className="blog-detail-wrap">
-            <div className="skeleton blog-skeleton-img" style={{ marginBottom: 24 }} />
-            <div className="skeleton" style={{ height: 16, width: 140, marginBottom: 16 }} />
-            <div className="skeleton" style={{ height: 14, width: "100%", marginBottom: 10 }} />
-            <div className="skeleton" style={{ height: 14, width: "92%", marginBottom: 10 }} />
+            <div
+              className="skeleton blog-skeleton-img"
+              style={{ marginBottom: 24 }}
+            />
+            <div
+              className="skeleton"
+              style={{ height: 16, width: 140, marginBottom: 16 }}
+            />
+            <div
+              className="skeleton"
+              style={{ height: 14, width: "100%", marginBottom: 10 }}
+            />
+            <div
+              className="skeleton"
+              style={{ height: 14, width: "92%", marginBottom: 10 }}
+            />
             <div className="skeleton" style={{ height: 14, width: "85%" }} />
           </div>
         </section>
@@ -96,9 +146,11 @@ export default function BlogDetailPage({ slug }) {
         <section className="blog-detail-section">
           <div className="blog-detail-wrap text-center">
             <h1>Article not found</h1>
-            <p className="mt-3">This blog post may have been removed or unpublished.</p>
+            <p className="mt-3">
+              This blog post may have been removed or unpublished.
+            </p>
             <Link href="/blog" className="btn-add d-inline-flex mt-4">
-              Back to Blog
+              ← Back to Blogs
             </Link>
           </div>
         </section>
@@ -126,35 +178,49 @@ export default function BlogDetailPage({ slug }) {
     );
   }
 
+  const faqItems = getBlogFaqItems(blog);
+  const accordionId = `blog-faq-${blog.slug || slug}`;
+
   return (
     <main className="blog-page">
       <section className="blog-hero">
         <div className="container">
           <h1>{blog.title}</h1>
-          <p className="post-date" style={{ color: "rgba(255,255,255,0.9)" }}>
-            {formatBlogDate(blog.created_at)}
-            {blog.author?.name ? ` · By ${blog.author.name}` : ""}
-          </p>
         </div>
       </section>
 
       <section className="blog-section blog-detail-section">
-        <div className="blog-layout">
-          <div className="blog-detail-wrap" style={{ width: "100%", margin: 0 }}>
+        <div className="blog-layout blog-detail-layout">
+          <div className="blog-detail-main">
             {blog.image_url && (
-              <div className="blog-detail-img">
-                <img src={getBlogImageUrl(blog)} alt={blog.title} />
+              <div className="blog-detail-img mb-4">
+                <img
+                  src={blog.image_url || getBlogImageUrl(blog)}
+                  alt={blog.title}
+                  className="w-100"
+                />
               </div>
             )}
 
-            {blog.description && (
-              <p className="lead">{blog.description}</p>
-            )}
+            <div className="post-meta mb-3">
+              <span className="item-meta post-date">
+                {formatBlogDate(blog.created_at)}
+              </span>
+            </div>
+
+            {blog.description && <p className="lead">{blog.description}</p>}
 
             {blog.content && (
               <div
                 className="blog-inner-content"
                 dangerouslySetInnerHTML={{ __html: blog.content }}
+              />
+            )}
+
+            {faqItems.length > 0 && (
+              <BlogFaqAccordion
+                faqItems={faqItems}
+                accordionId={accordionId}
               />
             )}
 
