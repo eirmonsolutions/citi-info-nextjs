@@ -67,6 +67,7 @@ const ContactInfo = ({ listing }) => {
               </ul>
             </div>
 
+
             <div className="social-links">
               {socialLinks.facebook && (
                 <a href={socialLinks.facebook} className="social-link facebook" target="_blank" rel="noopener noreferrer">

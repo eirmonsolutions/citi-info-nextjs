@@ -6,31 +6,31 @@ import { Settings } from "lucide-react";
 
 const userSteps = [
   {
-    title: "Search Local Businesses",
-    text: "Use our homepage search or browse categories to find restaurants, salons, plumbers, and other services near you across Australia.",
+    title: "Discover Local Businesses",
+    text: "Search by business name, service, category, or location to find trusted businesses across Australia. Whether you're looking for a restaurant, tradie, healthcare provider, beauty salon, or professional service, Citiinfo helps you find the right option quickly.",
   },
   {
-    title: "Compare Listings",
-    text: "View business profiles with contact details, hours, services, photos, reviews, and location information in one place.",
+    title: "Compare Businesses",
+    text: "Explore detailed business profiles featuring contact information, services, operating hours, photos, websites, reviews, and business descriptions. Compare multiple businesses and make informed decisions with confidence.",
   },
   {
-    title: "Connect Directly",
-    text: "Call, email, or visit the business website through links on their Citiinfo listing. Send an enquiry using the contact form on listing pages.",
+    title: "Connect With Confidence",
+    text: "Contact businesses directly via phone, email, website, social media, or enquiry forms. Get quotes, ask questions, and connect with local providers all from one convenient platform.",
   },
 ];
 
 const businessSteps = [
   {
-    title: "Create Your Free Listing",
-    text: "Click Add Listing and complete our simple step-by-step wizard with your business details, hours, services, photos, and features.",
+    title: "Create Your Free Business Listing",
+    text: "Add your business to Citiinfo in just a few steps. Include your company details, contact information, business hours, services, photos, social links, and more to create a professional online presence.",
   },
   {
-    title: "Get Reviewed & Published",
-    text: "After submission, our team reviews your listing for quality and accuracy. Once approved, your business appears in search and category pages.",
+    title: "Review & Approval Process",
+    text: "Our team reviews every submission to help maintain quality and accuracy across the directory. Once approved, your listing becomes visible to customers searching for businesses in your category and location.",
   },
   {
-    title: "Reach More Customers",
-    text: "Update your profile anytime, collect reviews, and help local customers discover your business through Australia's business directory.",
+    title: "Grow Your Business Online",
+    text: "Increase your online visibility, improve local discoverability, attract more enquiries, and connect with customers actively searching for your services. Update your profile anytime to keep your information current.",
   },
 ];
 
@@ -38,8 +38,8 @@ export default function HowItWorksPage() {
   return (
     <main className="resource-page">
       <ResourceHero
-        title="How It Works"
-        description="Whether you are looking for a local business or want to promote your own, Citiinfo makes it simple."
+        title="How Citiinfo Works"
+        description="Whether you're searching for a trusted local business or looking to promote your own, Citiinfo makes the process simple, fast, and effective."
         icon={<Settings size={56} strokeWidth={1.5} />}
       />
 
