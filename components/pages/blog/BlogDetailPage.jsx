@@ -1,5 +1,6 @@
 "use client";
 
+import { Inter, Playpen_Sans } from "next/font/google";
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import "../../../public/assets/css/BlogPages.css";
@@ -54,7 +55,7 @@ export default function BlogDetailPage({ slug }) {
         } else {
           setError(
             err.message ||
-              "Could not load this article. Please check the API server."
+            "Could not load this article. Please check the API server."
           );
         }
       } finally {
@@ -192,6 +193,15 @@ export default function BlogDetailPage({ slug }) {
       <section className="blog-section blog-detail-section">
         <div className="blog-layout blog-detail-layout">
           <div className="blog-detail-main">
+            <div className="post-meta mb-3">
+              <span className="item-meta post-date">
+                {formatBlogDate(blog.blog_date)}
+              </span>
+            </div>
+
+            
+
+
             {blog.image_url && (
               <div className="blog-detail-img mb-4">
                 <img
@@ -202,13 +212,9 @@ export default function BlogDetailPage({ slug }) {
               </div>
             )}
 
-            <div className="post-meta mb-3">
-              <span className="item-meta post-date">
-                {formatBlogDate(blog.created_at)}
-              </span>
-            </div>
 
-            {blog.description && <p className="lead">{blog.description}</p>}
+
+            
 
             {blog.content && (
               <div

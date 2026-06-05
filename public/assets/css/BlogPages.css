@@ -1,3 +1,34 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  --font-heading: "Playpen Sans", "Playpen Sans Fallback";
+  --font-body: "Inter", "Inter Fallback";
+}
+
+body {
+  font-family: var(--font-body), sans-serif;
+}
+
+/* Paragraphs */
+p {
+  font-family: var(--font-body), sans-serif;
+}
+
+a {
+  text-decoration: none;
+}
+
+/* Headings */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading), cursive !important;
+}
+
 .blog-page {
   background: #f4f7fb;
 }
@@ -15,8 +46,7 @@
   inset: 0;
   background:
     linear-gradient(135deg, rgba(15, 23, 42, 0.88), rgba(30, 64, 175, 0.82)),
-    url("https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1600&q=80")
-      center / cover no-repeat;
+    url("https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1600&q=80") center / cover no-repeat;
   z-index: 0;
 }
 
@@ -132,8 +162,13 @@
 }
 
 .blog-content h3 a {
-  color: #111827;
-  text-decoration: none;
+    color: #111827;
+    text-decoration: none;
+    overflow: hidden;
+    display: -webkit-box;
+    line-height: 32px;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
 }
 
 .blog-content h3 a:hover {
@@ -141,11 +176,16 @@
 }
 
 .blog-content p {
-  color: #4b5563;
-  line-height: 1.7;
-  font-size: 15px;
-  margin: 0 0 16px;
-  flex: 1;
+    color: #4b5563;
+    flex: 1;
+    margin: 0 0 16px;
+    font-size: 15px;
+    line-height: 1.7;
+    overflow: hidden;
+    display: -webkit-box;
+    line-height: 32px;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
 }
 
 .blog-btn .listing-btn,
@@ -347,7 +387,6 @@
 .blog-detail-img img {
   width: 100%;
   display: block;
-  max-height: 460px;
   object-fit: cover;
 }
 
@@ -405,3 +444,4 @@
     grid-template-columns: 1fr;
   }
 }
+

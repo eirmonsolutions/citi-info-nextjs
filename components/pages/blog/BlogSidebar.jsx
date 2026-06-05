@@ -12,6 +12,7 @@ export default function BlogSidebar({ recentPosts = [] }) {
     <aside className="blog-sidebar">
       <div className="blog-widget">
         <h4>Recent Posts</h4>
+
         <ul>
           {posts.length > 0 ? (
             posts.map((post) => (
@@ -22,9 +23,10 @@ export default function BlogSidebar({ recentPosts = [] }) {
                     alt={post.title}
                     loading="lazy"
                   />
+
                   <div>
                     {post.title}
-                    <span>{formatBlogDate(post.created_at)}</span>
+                    <span>{formatBlogDate(post.blog_date)}</span>
                   </div>
                 </Link>
               </li>
@@ -33,15 +35,6 @@ export default function BlogSidebar({ recentPosts = [] }) {
             <li>No posts yet.</li>
           )}
         </ul>
-      </div>
-
-      <div className="blog-widget newsletter-widget">
-        <h4>Subscribe Newsletter</h4>
-        <p style={{ fontSize: 14, color: "#6b7280", marginBottom: 12 }}>
-          Get business tips and directory updates from Citiinfo.
-        </p>
-        <input type="email" placeholder="Your email address" />
-        <button type="button">Subscribe</button>
       </div>
     </aside>
   );

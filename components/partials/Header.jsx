@@ -15,12 +15,24 @@ import {
   ChevronDown,
 } from "lucide-react";
 
-const BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL?.replace("/api", "");
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL || "https://api.citiinfo.com.au/api";
+
+const BASE_URL = API_URL.replace("/api", "");
 
 const LOGIN_URL =
-  process.env.NEXT_PUBLIC_LOGIN_URL ||
-  "https://api.citiinfo.com.au/login";
+  process.env.NEXT_PUBLIC_LOGIN_URL || "https://api.citiinfo.com.au/login";
+
+const getStoredUser = () => {
+  if (typeof window === "undefined") return null;
+
+  try {
+    const user = localStorage.getItem("user");
+    return user ? JSON.parse(user) : null;
+  } catch {
+    return null;
+  }
+};
 
 export default function Header() {
   const pathname = usePathname();
@@ -48,9 +60,10 @@ export default function Header() {
 
   useEffect(() => {
     const fetchAuthUser = async () => {
+      const storedUser = getStoredUser();
+
       try {
         const token = localStorage.getItem("token");
-        const storedUser = getStoredUser();
 
         if (token && storedUser) {
           setAuthUser(storedUser);
@@ -61,9 +74,7 @@ export default function Header() {
           return;
         }
 
-        const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.citiinfo.com.au/api";
-
-        const res = await fetch(`${apiBase}/auth-user`, {
+        const res = await fetch(`${API_URL}/auth-user`, {
           method: "GET",
           credentials: "include",
           headers: {
@@ -75,26 +86,38 @@ export default function Header() {
         });
 
         if (!res.ok) {
-          // Keep local fallback user when auth endpoint fails temporarily.
-          return setAuthUser(storedUser || null);
+          setAuthUser(storedUser || null);
+          return;
         }
+
         const data = await res.json();
-        setAuthUser(data?.authenticated ? data.user : null);
+
+        if (data?.authenticated && data?.user) {
+          localStorage.setItem("user", JSON.stringify(data.user));
+          setAuthUser(data.user);
+        } else {
+          localStorage.removeItem("user");
+          setAuthUser(null);
+        }
       } catch {
-        setAuthUser(getStoredUser());
+        setAuthUser(storedUser || null);
       }
     };
 
     fetchAuthUser();
+
     window.addEventListener("focus", fetchAuthUser);
-    return () => window.removeEventListener("focus", fetchAuthUser);
+
+    return () => {
+      window.removeEventListener("focus", fetchAuthUser);
+    };
   }, []);
 
   const logout = async () => {
     try {
       const token = localStorage.getItem("token");
 
-      await fetch(`${BASE_URL}/api/logout`, {
+      await fetch(`${API_URL}/logout`, {
         method: "POST",
         credentials: "include",
         headers: {
@@ -103,11 +126,12 @@ export default function Header() {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
       });
-    } catch (error) { }
+    } catch {}
 
     localStorage.removeItem("token");
     localStorage.removeItem("user");
 
+    setAuthUser(null);
     window.location.href = "/";
   };
 
@@ -126,10 +150,17 @@ export default function Header() {
             </Link>
 
             {authUser ? (
-              <div className={`dashboard-right-header user-dd ${userOpen ? "open" : ""}`}>
+              <div
+                className={`dashboard-right-header user-dd ${
+                  userOpen ? "open" : ""
+                }`}
+              >
                 {authUser.avatar ? (
                   <div className="profile-img">
-                    <img src={authUser.avatar} alt={authUser.display_name} />
+                    <img
+                      src={authUser.avatar}
+                      alt={authUser.display_name || "User"}
+                    />
                   </div>
                 ) : (
                   <div className="profile-box">
@@ -144,7 +175,7 @@ export default function Header() {
                   aria-expanded={userOpen}
                 >
                   <span className="user-name">
-                    {authUser.display_name || "User"}
+                    {authUser.display_name || authUser.name || "User"}
                   </span>
 
                   <span className="chev">
@@ -153,7 +184,7 @@ export default function Header() {
                 </button>
 
                 <div className="dropdown-menu-user">
-                  <a href={authUser.dashboard_url} className="dd-item">
+                  <a href={authUser.dashboard_url || "/dashboard"} className="dd-item">
                     Dashboard
                   </a>
 
@@ -191,6 +222,7 @@ export default function Header() {
             )}
 
             <button
+              type="button"
               className="menu-toggle"
               onClick={() => setMenuOpen(!menuOpen)}
             >
@@ -216,7 +248,9 @@ export default function Header() {
 
           <Link
             href="/business-listings"
-            className={`nav-link ${isActive("/business-listings") ? "active" : ""}`}
+            className={`nav-link ${
+              isActive("/business-listings") ? "active" : ""
+            }`}
           >
             <span className="icon">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -241,7 +275,10 @@ export default function Header() {
 
           <div className="nav-dropdown">
             <button
-              className={`nav-link dropdown-btn ${isResourceActive ? "active" : ""}`}
+              type="button"
+              className={`nav-link dropdown-btn ${
+                isResourceActive ? "active" : ""
+              }`}
               onClick={() => setResourceOpen(!resourceOpen)}
             >
               <span className="icon">

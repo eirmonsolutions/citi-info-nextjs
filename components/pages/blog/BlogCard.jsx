@@ -19,7 +19,7 @@ export default function BlogCard({ blog }) {
         <div className="post-meta">
           <span className="item-meta post-date">
             <Clock size={16} />
-            {formatBlogDate(blog.created_at)}
+            {formatBlogDate(blog.blog_date)}
           </span>
         </div>
 
