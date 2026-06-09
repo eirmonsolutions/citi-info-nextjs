@@ -104,21 +104,7 @@ export default function ContactPage() {
             <h2>Get in Touch</h2>
 
             <ul className="contact-info-list">
-              <li>
-                <MapPin size={22} color="#087df2" />
-                <div>
-                  <strong>Address</strong>
-                  <span>Australia</span>
-                </div>
-              </li>
-
-              <li>
-                <Phone size={22} color="#087df2" />
-                <div>
-                  <strong>Phone</strong>
-                  <a href="tel:+611300000000">1300 000 000</a>
-                </div>
-              </li>
+              
 
               <li>
                 <Mail size={22} color="#087df2" />
