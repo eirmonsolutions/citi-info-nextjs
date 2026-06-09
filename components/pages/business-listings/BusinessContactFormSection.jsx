@@ -47,6 +47,16 @@ const BusinessContactFormSection = ({ listing }) => {
 
       const data = await res.json();
 
+      if (!res.ok) {
+        const msg =
+          data.message ||
+          (data.errors
+            ? Object.values(data.errors).flat().join(", ")
+            : "Something went wrong.");
+        Swal.fire("Error", msg, "error");
+        return;
+      }
+
       if (data.success) {
         Swal.fire("Success", data.message, "success");
 

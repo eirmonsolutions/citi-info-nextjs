@@ -81,6 +81,23 @@ const BusinessListingsDetail = ({ slug }) => {
     };
   }, [slug]);
 
+  useEffect(() => {
+    if (!slug || !listing?.id) return;
+
+    const trackView = async () => {
+      try {
+        await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/listings/${slug}/view`,
+          { method: "POST" }
+        );
+      } catch (error) {
+        console.error("View tracking failed:", error);
+      }
+    };
+
+    trackView();
+  }, [slug, listing?.id]);
+
   if (loading) {
     return <BusinessListingDetailSkeleton />;
   }
@@ -137,6 +154,38 @@ const BusinessListingsDetail = ({ slug }) => {
     .filter(Boolean)
     .join(" , ");
 
+  const getRating = (item) => {
+    if (item.average_rating) return Number(item.average_rating).toFixed(1);
+
+    if (item.reviews_avg_rating) return Number(item.reviews_avg_rating).toFixed(1);
+
+    if (item.reviews?.length > 0) {
+      const total = item.reviews.reduce(
+        (sum, review) => sum + Number(review.rating || 0),
+        0
+      );
+
+      return (total / item.reviews.length).toFixed(1);
+    }
+
+    return "0.0";
+  };
+
+  const getReviewCount = (item) => {
+    if (item.reviews_count !== undefined && item.reviews_count !== null) {
+      return Number(item.reviews_count);
+    }
+
+    if (item.reviews?.length > 0) {
+      return item.reviews.length;
+    }
+
+    return 0;
+  };
+
+  const rating = getRating(listing);
+  const reviewCount = getReviewCount(listing);
+
   return (
     <>
       <section className="profile-details">
@@ -160,11 +209,11 @@ const BusinessListingsDetail = ({ slug }) => {
                     <li>
                       <Star size={18} />
                       <span className="profile-review-number">
-                        {listing.average_rating || "0.0"}
+                        {rating}
                       </span>
                       <span className="profile-review-count">
-                        {Number(listing.reviews_count) > 0
-                          ? ` (${listing.reviews_count} ratings)`
+                        {reviewCount > 0
+                          ? ` (${reviewCount} ratings)`
                           : " (No ratings)"}
                       </span>
                     </li>
