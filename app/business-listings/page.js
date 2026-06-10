@@ -20,7 +20,11 @@ const page = () => {
   return (
     <PageLayout>
       <Suspense fallback={<div>Loading listings...</div>}>
-        <BusinessListing />
+        <BusinessListing
+          homepageOnly={false}
+          showViewAll={false}
+          limit={12}
+        />
       </Suspense>
     </PageLayout>
   );

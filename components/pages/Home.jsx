@@ -10,7 +10,13 @@ const Home = () => {
             <Banner />
             <Categories />
             <Cities />
-            <BusinessListing limit={6} hideFilters={true} hidePagination={true} showViewAll={true} />
+            <BusinessListing
+                limit={6}
+                hideFilters={true}
+                hidePagination={true}
+                showViewAll={true}
+                homepageOnly={true}
+            />
         </>
     )
 }

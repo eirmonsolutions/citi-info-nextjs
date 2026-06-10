@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Suspense, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { LayoutGrid, List, Heart, Clock, Star, MapPin } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -8,17 +8,11 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import { Autoplay } from "swiper/modules";
 
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL;
-
-const STORAGE_URL =
-  process.env.NEXT_PUBLIC_STORAGE_URL;
-
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL;
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const STORAGE_URL = process.env.NEXT_PUBLIC_STORAGE_URL;
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL;
 
 const FALLBACK_IMAGE = `${SITE_URL}/assets/images/no-image.png`;
-
 const FALLBACK_LOGO = `${SITE_URL}/assets/images/favicon.jpg`;
 
 const BusinessListingContent = ({
@@ -27,29 +21,25 @@ const BusinessListingContent = ({
   limit = 12,
   hideFilters = false,
   hidePagination = false,
-  showViewAll = false,
+  homepageOnly = true,
+  showViewAll = true,
 }) => {
+  const searchParams = useSearchParams();
+
+  const cityParam = searchParams.get("city") || "";
+  const qParam = searchParams.get("q") || "";
+
   const [listings, setListings] = useState([]);
   const [pagination, setPagination] = useState({});
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(qParam);
   const [sort, setSort] = useState("name_asc");
   const [page, setPage] = useState(1);
   const [view, setView] = useState("grid");
   const [loading, setLoading] = useState(true);
 
   const isCategoryPage = !!categoryName;
-  const firstLoad = useRef(true);
   const skipScrollOnPageChange = useRef(true);
   const listingsSectionRef = useRef(null);
-
-  const [city, setCity] = useState("");
-  const [querySearch, setQuerySearch] = useState("");
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    setCity(params.get("city") || "");
-    setQuerySearch(params.get("q") || "");
-  }, []);
 
   const getImageUrl = (path, fallback = FALLBACK_IMAGE) => {
     if (!path) return fallback;
@@ -63,41 +53,16 @@ const BusinessListingContent = ({
 
   const getLogoUrl = (item) => {
     if (!item.logo) return FALLBACK_LOGO;
-
     const cleanLogo = String(item.logo).replace(/^\/+/, "");
-
     if (cleanLogo.startsWith("http")) return cleanLogo;
-
-    if (cleanLogo.startsWith("storage/")) {
-      return `${SITE_URL}/${cleanLogo}`;
-    }
-
-    if (cleanLogo.startsWith("business/")) {
-      return `${STORAGE_URL}/${cleanLogo}`;
-    }
-
+    if (cleanLogo.startsWith("storage/")) return `${SITE_URL}/${cleanLogo}`;
+    if (cleanLogo.startsWith("business/")) return `${STORAGE_URL}/${cleanLogo}`;
     return `${STORAGE_URL}/${cleanLogo}`;
   };
 
   const getGalleryImages = (item) => {
     if (!item.gallery || !Array.isArray(item.gallery)) return [];
     return item.gallery;
-  };
-
-  const getListingFeatures = (item) => {
-    const features = item?.features || [];
-    return features
-      .filter((feat) => feat?.feature_name?.trim() || feat?.feature_image)
-      .slice(0, 8);
-  };
-
-  const getFeatureImageUrl = (feat) => {
-    const img = feat?.feature_image;
-    if (!img) return "";
-    const clean = String(img).replace(/^\/+/, "");
-    if (clean.startsWith("http")) return clean;
-    if (clean.startsWith("storage/")) return `${SITE_URL}/${clean}`;
-    return `${STORAGE_URL}/${clean}`;
   };
 
   const changePage = (pageNumber) => {
@@ -130,7 +95,8 @@ const BusinessListingContent = ({
   const fetchListings = async (
     searchValue = search,
     sortValue = sort,
-    pageValue = page
+    pageValue = page,
+    cityValue = cityParam
   ) => {
     try {
       setLoading(true);
@@ -138,8 +104,8 @@ const BusinessListingContent = ({
       const url = `${API_URL}/listings?q=${encodeURIComponent(
         searchValue
       )}&sort=${sortValue}&page=${pageValue}&category_slug=${categorySlug}&city=${encodeURIComponent(
-        city
-      )}&per_page=${limit}`;
+        cityValue
+      )}&per_page=${limit}&homepage=${homepageOnly ? 1 : 0}`;
 
       const res = await fetch(url, { cache: "no-store" });
 
@@ -162,28 +128,22 @@ const BusinessListingContent = ({
   };
 
   useEffect(() => {
-    setSearch(querySearch);
+    setSearch(qParam);
     setPage(1);
-    fetchListings(querySearch, "name_asc", 1);
-  }, [city, querySearch]);
+    fetchListings(qParam, "name_asc", 1, cityParam);
+  }, [cityParam, qParam]);
 
   useEffect(() => {
-    if (firstLoad.current) {
-      firstLoad.current = false;
-      return;
-    }
-
     const delaySearch = setTimeout(() => {
       setPage(1);
-      fetchListings(search, sort, 1);
+      fetchListings(search, sort, 1, cityParam);
     }, 350);
 
     return () => clearTimeout(delaySearch);
   }, [search]);
 
   useEffect(() => {
-    if (firstLoad.current) return;
-    fetchListings(search, sort, page);
+    fetchListings(search, sort, page, cityParam);
   }, [sort, page]);
 
   useEffect(() => {
@@ -192,15 +152,12 @@ const BusinessListingContent = ({
     const scrollTarget = listingsSectionRef.current;
 
     if (scrollTarget) {
-      const top =
-        scrollTarget.getBoundingClientRect().top + window.scrollY - 100;
+      const top = scrollTarget.getBoundingClientRect().top + window.scrollY - 100;
       window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
-    } else {
-      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   }, [page, loading]);
 
-  const noResultText = querySearch || search || city || categoryName || "your search";
+  const noResultText = qParam || search || cityParam || categoryName || "your search";
 
   return (
     <section className="popular-categories" ref={listingsSectionRef}>
@@ -283,11 +240,10 @@ const BusinessListingContent = ({
                 </div>
               ))
             ) : listings.length > 0 ? (
-              (listings || []).map((item) => {
+              listings.map((item) => {
                 const galleryImages = getGalleryImages(item);
                 const hasGallery = galleryImages.length > 0;
                 const hasMultipleGallery = galleryImages.length > 1;
-                const listingFeatures = getListingFeatures(item);
 
                 return (
                   <div
@@ -419,33 +375,6 @@ const BusinessListingContent = ({
                           <MapPin size={18} />
                           <span>{getCityName(item)}</span>
                         </div>
-
-                        {/* {listingFeatures.length > 0 && (
-                          <div className="listing-card-features">
-                            {listingFeatures.map((feat, featIndex) => {
-                              const featureImg = getFeatureImageUrl(feat);
-
-                              return (
-                                <span
-                                  className="listing-feature-chip"
-                                  key={feat.id || featIndex}
-                                  title={feat.feature_name}
-                                >
-                                  {featureImg ? (
-                                    <img
-                                      src={featureImg}
-                                      alt={feat.feature_name || "Feature"}
-                                      loading="lazy"
-                                    />
-                                  ) : null}
-                                  <span className="listing-feature-name">
-                                    {feat.feature_name}
-                                  </span>
-                                </span>
-                              );
-                            })}
-                          </div>
-                        )} */}
                       </div>
                     </div>
                   </div>
@@ -469,7 +398,7 @@ const BusinessListingContent = ({
           </div>
         )}
 
-        {!hideFilters && !loading && listings.length > 0 && (
+        {!hideFilters && !hidePagination && !loading && listings.length > 0 && (
           <div id="paginationWrapper">
             <div className="pagination-wrap">
               <nav aria-label="Category Pagination">
@@ -503,8 +432,8 @@ const BusinessListingContent = ({
 
                   <li
                     className={`page-item ${page === pagination.last_page || !pagination.last_page
-                      ? "disabled"
-                      : ""
+                        ? "disabled"
+                        : ""
                       }`}
                   >
                     <button
