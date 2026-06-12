@@ -23,6 +23,7 @@ const BusinessListingContent = ({
   hidePagination = false,
   homepageOnly = true,
   showViewAll = true,
+  showCount = true,
 }) => {
   const searchParams = useSearchParams();
 
@@ -167,11 +168,13 @@ const BusinessListingContent = ({
             <div className="section-icon">☆</div>
             <div className="section-heading-info">
               <h2>Explore Top Rated Business Listings in Australia</h2>
-              <p>
-                {loading
-                  ? "Loading listings..."
-                  : `Showing ${pagination?.total || listings.length} listings`}
-              </p>
+              {showCount && (
+                <p>
+                  {loading
+                    ? "Loading listings..."
+                    : `Showing ${pagination?.total || listings.length} listings`}
+                </p>
+              )}
             </div>
           </div>
         )}
@@ -432,8 +435,8 @@ const BusinessListingContent = ({
 
                   <li
                     className={`page-item ${page === pagination.last_page || !pagination.last_page
-                        ? "disabled"
-                        : ""
+                      ? "disabled"
+                      : ""
                       }`}
                   >
                     <button
