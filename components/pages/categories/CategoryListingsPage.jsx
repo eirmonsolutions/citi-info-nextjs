@@ -42,7 +42,12 @@ const CategoryListingsPage = ({ slug }) => {
                 </div>
             </section>
 
-            <BusinessListing categorySlug={slug} categoryName={categoryName} />
+            <BusinessListing
+                categorySlug={slug}
+                categoryName={categoryName}
+                homepageOnly={false}
+                showViewAll={false}
+            />
 
             <style jsx global>{`
   section.popular-categories-details-area {
