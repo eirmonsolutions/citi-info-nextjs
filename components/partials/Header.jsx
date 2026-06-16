@@ -13,12 +13,13 @@ import {
   FileText,
   ShieldCheck,
   ChevronDown,
-  Heart,
+  MessageSquare,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import {
   getBackendLoginUrl,
   getBackendRegisterUrl,
+  getMessagesUrl,
 } from "@/lib/authUrls";
 import { getUserDisplayName, getUserInitials } from "@/lib/userDisplay";
 
@@ -115,13 +116,15 @@ export default function Header() {
 
                   <div className="dd-divider"></div>
 
-                  <Link href="/wishlist" className="dd-item dd-wishlist">
-                    <Heart size={16} />
-                    <span>Wishlist</span>
-                    <span className="wishlist-badge">
-                      {user.wishlist_count || 0}
-                    </span>
-                  </Link>
+                  <a
+                    href={getMessagesUrl(user)}
+                    className="dd-item"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <MessageSquare size={16} />
+                    Messages
+                  </a>
 
                   {user.dashboard_url && (
                     <a

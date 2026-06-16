@@ -31,6 +31,50 @@ function getCsrfToken(): string | null {
   return match ? decodeURIComponent(match[1]) : null;
 }
 
+let sessionCsrfToken: string | null = null;
+
+export async function resolveCsrfToken(): Promise<string | null> {
+  if (getToken()) return null;
+
+  const cookieToken = getCsrfToken();
+  if (cookieToken) {
+    sessionCsrfToken = cookieToken;
+    return cookieToken;
+  }
+
+  if (sessionCsrfToken) return sessionCsrfToken;
+
+  await ensureCsrfCookie();
+
+  const cookieAfter = getCsrfToken();
+  if (cookieAfter) {
+    sessionCsrfToken = cookieAfter;
+    return cookieAfter;
+  }
+
+  try {
+    const res = await fetch(`${getApiBase()}/auth/csrf-token`, {
+      method: "GET",
+      credentials: "include",
+      headers: {
+        Accept: "application/json",
+        "X-Requested-With": "XMLHttpRequest",
+      },
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (res.ok && data.token) {
+      sessionCsrfToken = data.token;
+      return data.token;
+    }
+  } catch {
+    // ignore
+  }
+
+  return null;
+}
+
 export async function ensureCsrfCookie() {
   await fetch(`${getBackendBase()}/sanctum/csrf-cookie`, {
     method: "GET",
@@ -56,10 +100,10 @@ export async function apiFetch(path: string, options: RequestInit = {}) {
   const isMutating = ["POST", "PUT", "PATCH", "DELETE"].includes(method);
 
   if (isMutating && !token) {
-    await ensureCsrfCookie();
+    await resolveCsrfToken();
   }
 
-  const csrfToken = !token ? getCsrfToken() : null;
+  const csrfToken = !token ? sessionCsrfToken || getCsrfToken() : null;
 
   const headers: HeadersInit = {
     Accept: "application/json",

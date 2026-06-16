@@ -4178,4 +4178,80 @@ section.cities-area {
   background: transparent;
   border: 1px solid #087df2;
   color: #087df2;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.listing-review-form-wrap {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.review-form-inline .form-group {
+  margin-bottom: 16px;
+}
+
+.review-form-inline label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.review-form-inline select,
+.review-form-inline textarea {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+}
+
+.review-login-prompt {
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+}
+
+.enquiry-login-prompt {
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+}
+
+.enquiry-user-details {
+  padding: 14px 16px;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+}
+
+.enquiry-user-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+  font-size: 14px;
+}
+
+.enquiry-user-row .label {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.enquiry-user-row .value {
+  color: #111827;
+  font-weight: 600;
+  text-align: right;
+}
+
+.user-dd .dd-item {
+  text-decoration: none;
 }
