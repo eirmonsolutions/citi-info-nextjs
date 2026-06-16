@@ -3,10 +3,24 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 export const TOKEN_KEY = "citiinfo_token";
 
 export function getApiBase(): string {
-  return API_URL || "http://localhost:8000/api";
+  if (API_URL) return API_URL;
+
+  if (typeof window !== "undefined" && window.location.origin) {
+    return `${window.location.origin}/api`;
+  }
+
+  return "http://localhost:8000/api";
 }
 
 export function getBackendBase(): string {
+  const backendUrl =
+    process.env.NEXT_PUBLIC_BACKEND_URL ||
+    process.env.NEXT_PUBLIC_SITE_URL;
+
+  if (backendUrl) {
+    return backendUrl.replace(/\/$/, "");
+  }
+
   return getApiBase().replace(/\/api\/?$/, "");
 }
 
