@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { LayoutGrid, List, Heart, Clock, Star, MapPin } from "lucide-react";
+import { LayoutGrid, List, Clock, Star, MapPin } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import { Autoplay } from "swiper/modules";
+import WishlistButton from "@/components/listings/WishlistButton";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 const STORAGE_URL = process.env.NEXT_PUBLIC_STORAGE_URL;
@@ -304,9 +305,7 @@ const BusinessListingContent = ({
                         <div className="image-overlay"></div>
 
                         <div className="action-buttons">
-                          <button className="action-btn wishlist-btn" type="button">
-                            <Heart size={22} />
-                          </button>
+                          <WishlistButton businessId={item.id} />
                         </div>
 
                         <div className="status-badge open close">

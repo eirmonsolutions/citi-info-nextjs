@@ -1,9 +1,9 @@
-import AuthForm from "@/components/auth/AuthForm";
+import RedirectToBackendAuth from "@/components/auth/RedirectToBackendAuth";
 
 export const metadata = {
   title: "Login | Citiinfo",
 };
 
 export default function LoginPage() {
-  return <AuthForm type="login" />;
+  return <RedirectToBackendAuth type="login" />;
 }

@@ -3,10 +3,26 @@
 import React, { useState } from "react";
 import { Star, PenLine, X } from "lucide-react";
 import Swal from "sweetalert2";
+import { apiFetch } from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
+import { redirectToBackendLogin, getBackendLoginUrl } from "@/lib/authUrls";
 
-const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/business-reviews`;
+function getErrorMessage(error, fallback) {
+  if (!error) return fallback;
 
-const BusinessReviewSection = ({ listing, user }) => {
+  if (error.status === 422 && error.errors) {
+    const firstField = Object.keys(error.errors)[0];
+    if (firstField && error.errors[firstField]?.[0]) {
+      return error.errors[firstField][0];
+    }
+  }
+
+  return error.message || fallback;
+}
+
+const BusinessReviewSection = ({ listing }) => {
+  const { isAuthenticated } = useAuth();
+
   const [openModal, setOpenModal] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -38,27 +54,8 @@ const BusinessReviewSection = ({ listing, user }) => {
   };
 
   const handleAddReview = () => {
-    if (!user) {
-      Swal.fire({
-        icon: "warning",
-        title: "Login Required",
-        html: `
-          <p>Please login first to submit your review.</p>
-          <p>If you are already registered, please login first. Otherwise, create a new account to continue.</p>
-        `,
-        showCancelButton: true,
-        confirmButtonText: "Login",
-        cancelButtonText: "Register",
-        confirmButtonColor: "#0d6efd",
-        cancelButtonColor: "#111827",
-      }).then((result) => {
-        if (result.isConfirmed) {
-          window.location.href = "/login";
-        } else if (result.dismiss === Swal.DismissReason.cancel) {
-          window.location.href = "/register";
-        }
-      });
-
+    if (!isAuthenticated) {
+      redirectToBackendLogin();
       return;
     }
 
@@ -80,10 +77,10 @@ const BusinessReviewSection = ({ listing, user }) => {
       return;
     }
 
-    if (form.review.length < 50) {
+    if (form.review.length < 10) {
       Swal.fire(
         "Review too short",
-        "Your review must be at least 50 characters.",
+        "Your review must be at least 10 characters.",
         "warning"
       );
       return;
@@ -92,60 +89,38 @@ const BusinessReviewSection = ({ listing, user }) => {
     setLoading(true);
 
     try {
-      const res = await fetch(API_URL, {
+      const data = await apiFetch("/business-reviews", {
         method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
         body: JSON.stringify({
           business_id: listing?.id,
-          rating: form.rating,
+          rating: Number(form.rating),
           review: form.review,
         }),
       });
 
-      const data = await res.json();
+      Swal.fire(
+        "Success",
+        data.message || "Your review has been submitted.",
+        "success"
+      );
 
-      if (res.status === 401) {
-        Swal.fire({
-          icon: "warning",
-          title: "Login Required",
-          html: `
-            <p>Please login first to submit your review.</p>
-            <p>If you are already registered, please login first. Otherwise, create a new account to continue.</p>
-          `,
-          showCancelButton: true,
-          confirmButtonText: "Login",
-          cancelButtonText: "Register",
-          confirmButtonColor: "#0d6efd",
-          cancelButtonColor: "#111827",
-        }).then((result) => {
-          if (result.isConfirmed) {
-            window.location.href = "/login";
-          } else if (result.dismiss === Swal.DismissReason.cancel) {
-            window.location.href = "/register";
-          }
-        });
+      setForm({
+        rating: "",
+        review: "",
+      });
 
+      setOpenModal(false);
+    } catch (error) {
+      if (error?.status === 401) {
+        redirectToBackendLogin();
         return;
       }
 
-      if (data.success) {
-        Swal.fire("Success", data.message, "success");
-
-        setForm({
-          rating: "",
-          review: "",
-        });
-
-        setOpenModal(false);
-      } else {
-        Swal.fire("Error", data.message || "Something went wrong.", "error");
-      }
-    } catch (error) {
-      Swal.fire("Error", "Unable to submit review.", "error");
+      Swal.fire(
+        "Error",
+        getErrorMessage(error, "Unable to submit review."),
+        "error"
+      );
     } finally {
       setLoading(false);
     }
@@ -157,10 +132,19 @@ const BusinessReviewSection = ({ listing, user }) => {
         <div className="review-header">
           <h2 className="heading-title">Reviews</h2>
 
-          <button className="add-review-btn" onClick={handleAddReview}>
-            <PenLine size={20} />
-            Add review
-          </button>
+          {isAuthenticated ? (
+            <button className="add-review-btn" onClick={handleAddReview}>
+              <PenLine size={20} />
+              Add review
+            </button>
+          ) : (
+            <a
+              href={getBackendLoginUrl()}
+              className="add-review-btn add-review-login"
+            >
+              Login to write a review
+            </a>
+          )}
         </div>
 
         <div className="row g-4 pb-3 mb-3">
@@ -220,7 +204,7 @@ const BusinessReviewSection = ({ listing, user }) => {
             <div className="review-modal-header">
               <h3>Write a review</h3>
 
-              <button onClick={() => setOpenModal(false)}>
+              <button type="button" onClick={() => setOpenModal(false)}>
                 <X size={26} />
               </button>
             </div>
@@ -235,6 +219,7 @@ const BusinessReviewSection = ({ listing, user }) => {
                   name="rating"
                   value={form.rating}
                   onChange={handleChange}
+                  required
                 >
                   <option value="" disabled>
                     Select rating
@@ -256,7 +241,9 @@ const BusinessReviewSection = ({ listing, user }) => {
                   name="review"
                   value={form.review}
                   onChange={handleChange}
-                  placeholder="Your review must be at least 50 characters."
+                  placeholder="Your review must be at least 10 characters."
+                  required
+                  minLength={10}
                 ></textarea>
               </div>
 

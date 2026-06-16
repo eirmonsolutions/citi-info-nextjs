@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
 import {
   LayoutGrid,
   Info,
@@ -13,34 +13,24 @@ import {
   FileText,
   ShieldCheck,
   ChevronDown,
+  Heart,
 } from "lucide-react";
-
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "https://api.citiinfo.com.au/api";
-
-const BASE_URL = API_URL.replace("/api", "");
-
-const LOGIN_URL =
-  process.env.NEXT_PUBLIC_LOGIN_URL || "https://api.citiinfo.com.au/login";
-
-const getStoredUser = () => {
-  if (typeof window === "undefined") return null;
-
-  try {
-    const user = localStorage.getItem("user");
-    return user ? JSON.parse(user) : null;
-  } catch {
-    return null;
-  }
-};
+import { useAuth } from "@/context/AuthContext";
+import {
+  getBackendLoginUrl,
+  getBackendRegisterUrl,
+} from "@/lib/authUrls";
+import { getUserDisplayName, getUserInitials } from "@/lib/userDisplay";
 
 export default function Header() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const { user, isAuthenticated, logout } = useAuth();
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [resourceOpen, setResourceOpen] = useState(false);
   const [userOpen, setUserOpen] = useState(false);
-  const [authUser, setAuthUser] = useState(null);
 
   const isActive = (path) => {
     if (path === "/") return pathname === "/";
@@ -58,79 +48,13 @@ export default function Header() {
     "/disclaimer",
   ].some((path) => pathname.startsWith(path));
 
-  useEffect(() => {
-    const fetchAuthUser = async () => {
-      const storedUser = getStoredUser();
+  const userName = getUserDisplayName(user);
+  const userInitials = getUserInitials(user);
 
-      if (storedUser) {
-        setAuthUser(storedUser);
-      }
-
-      try {
-        const token = localStorage.getItem("token");
-
-        const res = await fetch(`${API_URL}/auth-user`, {
-          method: "GET",
-          credentials: "include",
-          headers: {
-            Accept: "application/json",
-            "X-Requested-With": "XMLHttpRequest",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-          cache: "no-store",
-        });
-
-        if (!res.ok) {
-          setAuthUser(storedUser || null);
-          return;
-        }
-
-        const data = await res.json();
-
-        if (data?.authenticated && data?.user) {
-          localStorage.setItem("user", JSON.stringify(data.user));
-          setAuthUser(data.user);
-        } else {
-          localStorage.removeItem("user");
-          localStorage.removeItem("token");
-          setAuthUser(null);
-        }
-      } catch {
-        setAuthUser(storedUser || null);
-      }
-    };
-
-    fetchAuthUser();
-
-    window.addEventListener("focus", fetchAuthUser);
-    window.addEventListener("storage", fetchAuthUser);
-
-    return () => {
-      window.removeEventListener("focus", fetchAuthUser);
-      window.removeEventListener("storage", fetchAuthUser);
-    };
-  }, []);
-
-  const logout = async () => {
-    try {
-      const token = localStorage.getItem("token");
-
-      await fetch(`${API_URL}/logout`, {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          Accept: "application/json",
-          "X-Requested-With": "XMLHttpRequest",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-      });
-    } catch { }
-
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-
-    setAuthUser(null);
-    window.location.href = "/";
+  const handleLogout = async () => {
+    await logout();
+    setUserOpen(false);
+    router.push("/");
   };
 
   return (
@@ -147,21 +71,20 @@ export default function Header() {
               Add Listing
             </Link>
 
-            {authUser ? (
+            {isAuthenticated && user ? (
               <div
-                className={`dashboard-right-header user-dd ${userOpen ? "open" : ""
-                  }`}
+                className={`dashboard-right-header user-dd ${userOpen ? "open" : ""}`}
               >
-                {authUser.avatar ? (
+                {user.avatar ? (
                   <div className="profile-img">
                     <img
-                      src={authUser.avatar}
-                      alt={authUser.display_name || "User"}
+                      src={user.avatar}
+                      alt={userName}
                     />
                   </div>
                 ) : (
                   <div className="profile-box">
-                    {authUser.initials || "U"}
+                    {userInitials}
                   </div>
                 )}
 
@@ -172,7 +95,7 @@ export default function Header() {
                   aria-expanded={userOpen}
                 >
                   <span className="user-name">
-                    {authUser.display_name || authUser.name || "User"}
+                    {userName}
                   </span>
 
                   <span className="chev">
@@ -181,41 +104,56 @@ export default function Header() {
                 </button>
 
                 <div className="dropdown-menu-user">
-                  <a href={authUser.dashboard_url || "/dashboard"} className="dd-item">
-                    Dashboard
-                  </a>
+                  <div className="dd-profile">
+                    <div className="dd-profile-initials">
+                      {userInitials}
+                    </div>
+                    <div>
+                      <strong>{userName}</strong>
+                    </div>
+                  </div>
 
-                  <a href="#" className="dd-item">
-                    My Profile
-                  </a>
+                  <div className="dd-divider"></div>
 
-                  <a href="#" className="dd-item">
-                    Wishlist ({authUser.wishlist_count || 0})
-                  </a>
+                  <Link href="/wishlist" className="dd-item dd-wishlist">
+                    <Heart size={16} />
+                    <span>Wishlist</span>
+                    <span className="wishlist-badge">
+                      {user.wishlist_count || 0}
+                    </span>
+                  </Link>
 
-                  <a href="#" className="dd-item">
-                    Notifications
-                  </a>
-
-                  <a href="#" className="dd-item">
-                    Settings
-                  </a>
+                  {user.dashboard_url && (
+                    <a
+                      href={user.dashboard_url}
+                      className="dd-item"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Dashboard
+                    </a>
+                  )}
 
                   <div className="dd-divider"></div>
 
                   <button
                     type="button"
                     className="dd-item dd-danger"
-                    onClick={logout}
+                    onClick={handleLogout}
                   >
                     Logout
                   </button>
                 </div>
               </div>
             ) : (
-              <Link href={LOGIN_URL} className="btn-login">
-                Login
-              </Link>
+              <div className="header-auth-buttons">
+                <a href={getBackendLoginUrl()} className="btn-login">
+                  Login
+                </a>
+                <a href={getBackendRegisterUrl()} className="btn-register">
+                  Register
+                </a>
+              </div>
             )}
 
             <button
@@ -245,8 +183,7 @@ export default function Header() {
 
           <Link
             href="/business-listings"
-            className={`nav-link ${isActive("/business-listings") ? "active" : ""
-              }`}
+            className={`nav-link ${isActive("/business-listings") ? "active" : ""}`}
           >
             <span className="icon">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -272,8 +209,7 @@ export default function Header() {
           <div className="nav-dropdown">
             <button
               type="button"
-              className={`nav-link dropdown-btn ${isResourceActive ? "active" : ""
-                }`}
+              className={`nav-link dropdown-btn ${isResourceActive ? "active" : ""}`}
               onClick={() => setResourceOpen(!resourceOpen)}
             >
               <span className="icon">

@@ -3845,3 +3845,337 @@ section.cities-area {
     grid-template-columns: 1fr;
   }
 }
+
+/* Auth header buttons */
+.header-auth-buttons {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-login {
+  color: #222222;
+  border: 1px solid #222222;
+  border-radius: 8px;
+  align-items: center;
+  gap: 0;
+  padding: 8px 13px;
+  font-weight: 400;
+  text-decoration: none;
+  transition: all .3s;
+  font-size: 14px;
+  display: inline-flex;
+}
+
+.btn-register {
+  color: #fff;
+  background: #087df2;
+  border: 1px solid #087df2;
+  border-radius: 8px;
+  padding: 8px 13px;
+  font-weight: 400;
+  font-size: 14px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  transition: all 0.3s;
+}
+
+.btn-register:hover {
+  background: #006bd6;
+  border-color: #006bd6;
+}
+
+/* User dropdown */
+.user-dd {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-dd .profile-box,
+.user-dd .dd-profile-initials {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #087df2;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.user-dd .profile-img img {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.user-dd .dropdown-trigger {
+  background: none;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  color: #222;
+  font-size: 14px;
+  padding: 0;
+}
+
+.user-dd .dropdown-menu-user {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 220px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+  padding: 8px 0;
+  z-index: 100;
+}
+
+.user-dd.open .dropdown-menu-user {
+  display: block;
+}
+
+.user-dd .dd-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+}
+
+.user-dd .dd-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  background: none;
+  text-align: left;
+  color: #374151;
+  text-decoration: none;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.user-dd .dd-item:hover {
+  background: #f3f4f6;
+}
+
+.user-dd .dd-wishlist {
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.user-dd .dd-wishlist:hover {
+  background: #f3f4f6;
+}
+
+.wishlist-page .section-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ef4444;
+}
+
+.wishlist-empty {
+  text-align: center;
+  padding: 48px 24px;
+}
+
+.wishlist-empty svg {
+  color: #ef4444;
+  margin-bottom: 12px;
+}
+
+.wishlist-empty h3 {
+  margin-bottom: 8px;
+}
+
+.wishlist-empty p {
+  margin-bottom: 20px;
+  color: #6b7280;
+}
+
+.user-dd .wishlist-badge {
+  margin-left: auto;
+  background: #087df2;
+  color: #fff;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.user-dd .dd-danger {
+  color: #dc2626;
+}
+
+.user-dd .dd-divider {
+  height: 1px;
+  background: #e5e7eb;
+  margin: 4px 0;
+}
+
+/* Wishlist heart */
+.wishlist-btn.active {
+  color: #ef4444;
+}
+
+.wishlist-btn:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+/* Auth modal */
+.auth-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.auth-modal {
+  width: 100%;
+  max-width: 440px;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.2);
+  overflow: hidden;
+}
+
+.auth-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px 0;
+}
+
+.auth-modal-header h3 {
+  margin: 0;
+  font-size: 22px;
+  color: #111827;
+}
+
+.auth-modal-header button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #6b7280;
+}
+
+.auth-modal-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 16px 20px 0;
+}
+
+.auth-modal-tabs button {
+  flex: 1;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.auth-modal-tabs button.active {
+  background: #087df2;
+  border-color: #087df2;
+  color: #fff;
+}
+
+.auth-modal-error {
+  margin: 14px 20px 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 14px;
+}
+
+.auth-modal-form {
+  padding: 16px 20px 20px;
+}
+
+.auth-modal-form .form-group {
+  margin-bottom: 14px;
+}
+
+.auth-modal-form label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 14px;
+  color: #374151;
+}
+
+.auth-modal-form input[type="text"],
+.auth-modal-form input[type="email"],
+.auth-modal-form input[type="password"] {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+}
+
+.auth-modal-form .password-field {
+  position: relative;
+}
+
+.auth-modal-form .password-field input {
+  padding-right: 42px;
+}
+
+.auth-modal-form .password-field button {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #6b7280;
+}
+
+.auth-modal-terms {
+  margin-bottom: 14px;
+  font-size: 13px;
+  color: #4b5563;
+}
+
+.auth-modal-submit {
+  width: 100%;
+  border: none;
+  border-radius: 8px;
+  background: #087df2;
+  color: #fff;
+  padding: 11px 14px;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.auth-modal-submit:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.add-review-login {
+  background: transparent;
+  border: 1px solid #087df2;
+  color: #087df2;
+}

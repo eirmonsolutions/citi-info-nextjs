@@ -4,11 +4,34 @@ import Link from "next/link";
 import { useState } from "react";
 import Swal from "sweetalert2";
 import { Eye, EyeOff } from "lucide-react";
-import { loginWithSanctum, resolveLoginRedirect } from "@/lib/api/auth";
-import { apiFetch } from "@/lib/api/client";
+import { useAuth } from "@/context/AuthContext";
+import { resolveLoginRedirect } from "@/lib/api/auth";
+
+function getErrorMessage(error, fallback) {
+  if (!error) return fallback;
+
+  if (error.status === 401) {
+    return error.message || "Invalid email or password.";
+  }
+
+  if (error.status === 403) {
+    return error.message || "Your account has been blocked. Please contact support.";
+  }
+
+  if (error.status === 422 && error.errors) {
+    const firstField = Object.keys(error.errors)[0];
+    if (firstField && error.errors[firstField]?.[0]) {
+      return error.errors[firstField][0];
+    }
+  }
+
+  return error.message || fallback;
+}
 
 export default function AuthForm({ type = "login" }) {
   const isLogin = type === "login";
+  const { login, register } = useAuth();
+
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -17,15 +40,14 @@ export default function AuthForm({ type = "login" }) {
     email: "",
     password: "",
     agree_terms: false,
-    remember: false,
   });
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value, type: inputType, checked } = e.target;
 
     setForm({
       ...form,
-      [name]: type === "checkbox" ? checked : value,
+      [name]: inputType === "checkbox" ? checked : value,
     });
   };
 
@@ -35,10 +57,9 @@ export default function AuthForm({ type = "login" }) {
 
     try {
       if (isLogin) {
-        const data = await loginWithSanctum({
+        const data = await login({
           email: form.email,
           password: form.password,
-          remember: form.remember,
         });
 
         Swal.fire({
@@ -56,22 +77,21 @@ export default function AuthForm({ type = "login" }) {
         return;
       }
 
-      const data = await apiFetch("/register", {
-        method: "POST",
-        body: JSON.stringify({
-          name: form.name,
-          email: form.email,
-          password: form.password,
-          agree_terms: form.agree_terms,
-        }),
+      const data = await register({
+        name: form.name,
+        email: form.email,
+        password: form.password,
+        agree_terms: form.agree_terms,
       });
 
-      if (data.ok === false) {
+      if (data.token) {
         Swal.fire({
-          icon: "error",
-          title: "Registration Failed",
-          text: data.message || "Please check your details and try again.",
+          icon: "success",
+          title: "Registration Successful!",
+          text: data.message || "Your account has been created successfully.",
           confirmButtonColor: "#087df2",
+        }).then(() => {
+          window.location.href = "/";
         });
         return;
       }
@@ -87,8 +107,11 @@ export default function AuthForm({ type = "login" }) {
     } catch (error) {
       Swal.fire({
         icon: "error",
-        title: isLogin ? "Login Failed" : "Server Error",
-        text: error.message || "Something went wrong. Please try again.",
+        title: isLogin ? "Login Failed" : "Registration Failed",
+        text: getErrorMessage(
+          error,
+          "Something went wrong. Please try again."
+        ),
         confirmButtonColor: "#087df2",
       });
     } finally {
@@ -170,16 +193,6 @@ export default function AuthForm({ type = "login" }) {
 
             {isLogin ? (
               <div className="auth-options">
-                <label>
-                  <input
-                    type="checkbox"
-                    name="remember"
-                    checked={form.remember}
-                    onChange={handleChange}
-                  />{" "}
-                  Remember me
-                </label>
-
                 <Link href="/forgot-password">Forgot Password</Link>
               </div>
             ) : (

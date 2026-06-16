@@ -8,7 +8,7 @@ import "swiper/css";
 import "swiper/css/pagination";
 
 const STORAGE_URL =
-  process.env.NEXT_PUBLIC_STORAGE_URL || "https://api.citiinfo.com.au/storage";
+  process.env.NEXT_PUBLIC_STORAGE_URL || "http://127.0.0.1:8000/storage";
 
 const ImgSliderSection = ({ listing }) => {
   const galleryImages =

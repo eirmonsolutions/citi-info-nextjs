@@ -2,6 +2,7 @@ import { Inter, Playpen_Sans } from "next/font/google";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./globals.css";
 import BootstrapClient from "@/components/BootstrapClient";
+import Providers from "@/components/providers/Providers";
 import Script from "next/script";
 
 const inter = Inter({
@@ -29,7 +30,7 @@ export const metadata = {
     "business listing website",
   ],
   alternates: {
-    canonical: "https://api.citiinfo.com.au/",
+    canonical: "http://127.0.0.1:8000/",
   },
 };
 
@@ -61,7 +62,7 @@ export default function RootLayout({ children }) {
         </noscript>
 
         <BootstrapClient />
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

@@ -18,7 +18,7 @@ export default function ContactPage() {
   const [loading, setLoading] = useState(false);
 
   const API_URL =
-    process.env.NEXT_PUBLIC_API_URL || "https://api.citiinfo.com.au/api";
+    process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api";
 
   const handleChange = (e) => {
     const { name, value } = e.target;

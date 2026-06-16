@@ -3,7 +3,7 @@ const nextConfig = {
   allowedDevOrigins: [
     "http://192.168.1.14:3000",
     "http://localhost:3000",
-    "https://api.citiinfo.com.au/",
+    "http://127.0.0.1:8000/",
   ],
 
   async redirects() {

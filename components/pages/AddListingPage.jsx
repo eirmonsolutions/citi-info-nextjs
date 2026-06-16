@@ -1956,7 +1956,7 @@ const AddListingPage = () => {
                                                         const img = rawImg
                                                             ? rawImg.startsWith("http")
                                                                 ? rawImg
-                                                                : `https://api.citiinfo.com.au/storage/${rawImg}`
+                                                                : `http://127.0.0.1:8000/storage/${rawImg}`
                                                             : "";
 
                                                         return (

@@ -19,10 +19,10 @@ import BusinessListingDetailSkeleton from "./BusinessListingDetailSkeleton";
 import { fetchListingBySlug } from "@/lib/fetchListingBySlug";
 
 const STORAGE_URL =
-  process.env.NEXT_PUBLIC_STORAGE_URL || "https://api.citiinfo.com.au/storage";
+  process.env.NEXT_PUBLIC_STORAGE_URL || "http://127.0.0.1:8000/storage";
 
 const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://api.citiinfo.com.au";
+  process.env.NEXT_PUBLIC_SITE_URL || "http://127.0.0.1:8000";
 
 const BusinessListingsDetail = ({ slug }) => {
   const [listing, setListing] = useState(null);
@@ -256,7 +256,7 @@ const BusinessListingsDetail = ({ slug }) => {
 
               <FAQSection listing={listing} />
 
-              <BusinessReviewSection listing={listing} user={null} />
+              <BusinessReviewSection listing={listing} />
             </div>
 
             <div className="col-lg-12 col-xl-4">
