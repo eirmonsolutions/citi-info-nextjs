@@ -1,5 +1,46 @@
-const SITE_URL = "https://citiinfo.com.au";
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const DEFAULT_SITE_URL = "https://citiinfo.com.au";
+const DEFAULT_API_URL = "https://api.citiinfo.com.au/api";
+
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || DEFAULT_SITE_URL).replace(
+  /\/+$/,
+  "",
+);
+
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || DEFAULT_API_URL).replace(
+  /\/+$/,
+  "",
+);
+
+function makeApiUrl(endpoint, page = 1) {
+  const cleanEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
+  const url = new URL(`${API_URL}${cleanEndpoint}`);
+
+  url.searchParams.set("per_page", "100");
+  url.searchParams.set("page", String(page));
+
+  return url.toString();
+}
+
+function getItems(json) {
+  if (Array.isArray(json?.data?.data)) return json.data.data;
+  if (Array.isArray(json?.data)) return json.data;
+  if (Array.isArray(json)) return json;
+
+  return [];
+}
+
+function getPagination(json, page) {
+  return {
+    currentPage:
+      json?.data?.current_page ||
+      json?.meta?.current_page ||
+      json?.current_page ||
+      page,
+
+    lastPage:
+      json?.data?.last_page || json?.meta?.last_page || json?.last_page || page,
+  };
+}
 
 async function fetchAll(endpoint) {
   let page = 1;
@@ -7,33 +48,34 @@ async function fetchAll(endpoint) {
 
   while (true) {
     try {
-      const separator = endpoint.includes("?") ? "&" : "?";
+      const fetchUrl = makeApiUrl(endpoint, page);
 
-      const res = await fetch(
-        `${API_URL}${endpoint}${separator}per_page=100&page=${page}`,
-        {
-          next: { revalidate: 3600 },
-        }
-      );
+      const res = await fetch(fetchUrl, {
+        headers: {
+          Accept: "application/json",
+        },
+        next: {
+          revalidate: 3600,
+        },
+      });
 
-      if (!res.ok) break;
+      if (!res.ok) {
+        console.error(
+          `Sitemap fetch failed: ${fetchUrl} Status: ${res.status}`,
+        );
+        break;
+      }
 
       const json = await res.json();
+      const items = getItems(json);
 
-      const items = Array.isArray(json?.data?.data)
-        ? json.data.data
-        : Array.isArray(json?.data)
-        ? json.data
-        : Array.isArray(json)
-        ? json
-        : [];
+      all.push(...items);
 
-      all = [...all, ...items];
+      const { currentPage, lastPage } = getPagination(json, page);
 
-      const currentPage = json?.data?.current_page;
-      const lastPage = json?.data?.last_page;
-
-      if (!lastPage || currentPage >= lastPage) break;
+      if (!lastPage || currentPage >= lastPage) {
+        break;
+      }
 
       page++;
     } catch (error) {
@@ -64,7 +106,7 @@ export default async function sitemap() {
     fetchAll("/categories"),
   ]);
 
-  const urls = [
+  return [
     ...staticPages.map((path) => ({
       url: `${SITE_URL}${path}`,
       lastModified: new Date(),
@@ -76,7 +118,11 @@ export default async function sitemap() {
       .filter((item) => item?.slug)
       .map((item) => ({
         url: `${SITE_URL}/business-listings/${item.slug}`,
-        lastModified: item.updated_at || item.created_at || new Date(),
+        lastModified: item.updated_at
+          ? new Date(item.updated_at)
+          : item.created_at
+            ? new Date(item.created_at)
+            : new Date(),
         changeFrequency: "weekly",
         priority: 0.9,
       })),
@@ -85,7 +131,11 @@ export default async function sitemap() {
       .filter((item) => item?.slug)
       .map((item) => ({
         url: `${SITE_URL}/blog/${item.slug}`,
-        lastModified: item.updated_at || item.created_at || new Date(),
+        lastModified: item.updated_at
+          ? new Date(item.updated_at)
+          : item.created_at
+            ? new Date(item.created_at)
+            : new Date(),
         changeFrequency: "weekly",
         priority: 0.8,
       })),
@@ -93,12 +143,14 @@ export default async function sitemap() {
     ...categories
       .filter((item) => item?.slug)
       .map((item) => ({
-        url: `${SITE_URL}/category/${item.slug}`,
-        lastModified: item.updated_at || item.created_at || new Date(),
+        url: `${SITE_URL}/categories/${item.slug}`,
+        lastModified: item.updated_at
+          ? new Date(item.updated_at)
+          : item.created_at
+            ? new Date(item.created_at)
+            : new Date(),
         changeFrequency: "weekly",
         priority: 0.7,
       })),
   ];
-
-  return urls;
 }
