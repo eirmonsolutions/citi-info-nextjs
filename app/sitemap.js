@@ -1,15 +1,13 @@
+import { getServerApiBase } from "@/lib/serverApi";
+
 const DEFAULT_SITE_URL = "https://citiinfo.com.au";
-const DEFAULT_API_URL = "https://api.citiinfo.com.au/api";
 
 const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || DEFAULT_SITE_URL).replace(
   /\/+$/,
   "",
 );
 
-const API_URL = (process.env.NEXT_PUBLIC_API_URL || DEFAULT_API_URL).replace(
-  /\/+$/,
-  "",
-);
+const API_URL = getServerApiBase().replace(/\/+$/, "");
 
 function makeApiUrl(endpoint, page = 1) {
   const cleanEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;

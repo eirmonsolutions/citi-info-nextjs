@@ -31,6 +31,10 @@ export function AuthProvider({ children }) {
 
   const loadProfile = useCallback(async () => {
     try {
+      if (!getToken()) {
+        await ensureCsrfCookie();
+      }
+
       const data = await apiFetch("/auth/profile");
       const profileUser = parseAuthUser(data);
       setUser(profileUser);
@@ -38,6 +42,8 @@ export function AuthProvider({ children }) {
       if (error?.status === 401 || error?.status === 403) {
         clearToken();
         setUser(null);
+      } else if (process.env.NODE_ENV !== "production") {
+        console.warn("[auth] profile sync failed:", error);
       }
     } finally {
       setLoading(false);

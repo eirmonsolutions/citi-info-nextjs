@@ -1,7 +1,6 @@
 import React from "react";
 import Link from "next/link";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+import { getServerApiBase } from "@/lib/serverApi";
 
 const cityImages = {
   Melbourne: "/assets/images/cities-img/Melbourne.jpg",
@@ -14,7 +13,7 @@ const Cities = async () => {
   let result = { data: [] };
 
   try {
-    const res = await fetch(`${API_URL}/home-cities`, {
+    const res = await fetch(`${getServerApiBase()}/home-cities`, {
       cache: "no-store",
     });
 

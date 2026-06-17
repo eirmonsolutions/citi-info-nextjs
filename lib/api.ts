@@ -2,14 +2,57 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export const TOKEN_KEY = "citiinfo_token";
 
-export function getApiBase(): string {
-  if (API_URL) return API_URL;
+const DEFAULT_API = "https://api.citiinfo.com.au/api";
 
-  if (typeof window !== "undefined" && window.location.origin) {
-    return `${window.location.origin}/api`;
+function getDirectBackendApiBase(): string | null {
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL?.replace(/\/$/, "");
+
+  if (!backendUrl?.startsWith("http")) {
+    return null;
   }
 
-  return "http://localhost:8000/api";
+  return `${backendUrl}/api`;
+}
+
+export function getApiBase(): string {
+  const configured = API_URL?.trim();
+
+  if (configured?.startsWith("http")) {
+    return configured.replace(/\/$/, "");
+  }
+
+  if (typeof window !== "undefined") {
+    // citiinfo.com.au → api.citiinfo.com.au: browser must call API directly.
+    // Next.js /api proxy does not pass Sanctum stateful session auth correctly.
+    const backendApi = getDirectBackendApiBase();
+    if (backendApi) {
+      try {
+        const frontendHost = window.location.hostname;
+        const backendHost = new URL(backendApi).hostname;
+
+        if (frontendHost !== backendHost) {
+          return backendApi;
+        }
+      } catch {
+        // fall through to same-origin path
+      }
+    }
+
+    const path = configured?.startsWith("/") ? configured : "/api";
+    return `${window.location.origin}${path}`.replace(/\/$/, "");
+  }
+
+  const proxyTarget = process.env.API_PROXY_TARGET?.replace(/\/$/, "");
+  if (proxyTarget?.startsWith("http")) {
+    return proxyTarget;
+  }
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
+  if (configured?.startsWith("/") && siteUrl?.startsWith("http")) {
+    return `${siteUrl}${configured}`;
+  }
+
+  return DEFAULT_API;
 }
 
 export function getBackendBase(): string {

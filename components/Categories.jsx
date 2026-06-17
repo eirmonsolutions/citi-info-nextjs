@@ -1,8 +1,8 @@
 import React from "react";
 import Link from "next/link";
+import { getServerApiBase, getServerStorageUrl } from "@/lib/serverApi";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
-const STORAGE_URL = process.env.NEXT_PUBLIC_STORAGE_URL;
+const STORAGE_URL = getServerStorageUrl();
 
 const CategoriesSkeleton = () => {
   return (
@@ -57,7 +57,7 @@ const Categories = async () => {
   let categories = [];
 
   try {
-    const res = await fetch(`${API_URL}/home-categories`, {
+    const res = await fetch(`${getServerApiBase()}/home-categories`, {
       cache: "no-store",
     });
 
