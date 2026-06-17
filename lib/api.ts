@@ -67,6 +67,24 @@ export function getBackendBase(): string {
   return getApiBase().replace(/\/api\/?$/, "");
 }
 
+/** Web route — same session as api.citiinfo.com.au/login (not /api/*). */
+export async function fetchSessionProfile() {
+  const res = await fetch(`${getBackendBase()}/auth/session-profile`, {
+    method: "GET",
+    credentials: "include",
+    headers: {
+      Accept: "application/json",
+      "X-Requested-With": "XMLHttpRequest",
+    },
+  });
+
+  const data = await res.json().catch(() => ({}));
+
+  if (!res.ok) throw { status: res.status, ...data };
+
+  return data;
+}
+
 export function getToken(): string | null {
   if (typeof window === "undefined") return null;
   return localStorage.getItem(TOKEN_KEY);

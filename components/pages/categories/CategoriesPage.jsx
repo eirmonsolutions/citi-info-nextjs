@@ -2,8 +2,8 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+import { getStorageUrl } from "@/lib/storageUrl";
+import { getApiBase } from "@/lib/api";
 
 const CategoriesPage = () => {
 
@@ -48,7 +48,7 @@ const CategoriesPage = () => {
             setLoading(true);
 
             const res = await fetch(
-                `${API_URL}/categories?q=${encodeURIComponent(searchValue)}&sort=${sortValue}&page=${pageValue}`
+                `${getApiBase()}/categories?q=${encodeURIComponent(searchValue)}&sort=${sortValue}&page=${pageValue}`
             );
 
             if (!res.ok) {
@@ -190,9 +190,9 @@ const CategoriesPage = () => {
                                     style={{ background: getRandomColor() }}
                                 >
 
-                                    {cat.categoryimage_url && (
+                                    {(cat.categoryimage_url || cat.categoryimage) && (
                                         <img
-                                            src={cat.categoryimage_url}
+                                            src={getStorageUrl(cat.categoryimage_url || cat.categoryimage)}
                                             alt={cat.name}
                                             width={40}
                                             height={40}

@@ -1,8 +1,7 @@
 import React from "react";
 import Link from "next/link";
-import { getServerApiBase, getServerStorageUrl } from "@/lib/serverApi";
-
-const STORAGE_URL = getServerStorageUrl();
+import { getServerApiBase } from "@/lib/serverApi";
+import { getStorageUrl } from "@/lib/storageUrl";
 
 const CategoriesSkeleton = () => {
   return (
@@ -85,7 +84,7 @@ const Categories = async () => {
         <div className="popular-cat-grid">
           {categories.map((cat) => {
             const imageUrl = cat.categoryimage
-              ? `${STORAGE_URL}/${cat.categoryimage}`
+              ? getStorageUrl(cat.categoryimage)
               : "";
 
             return (

@@ -8,13 +8,8 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import { Autoplay } from "swiper/modules";
 import WishlistButton from "@/components/listings/WishlistButton";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
-const STORAGE_URL = process.env.NEXT_PUBLIC_STORAGE_URL;
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL;
-
-const FALLBACK_IMAGE = `${SITE_URL}/assets/images/no-image.png`;
-const FALLBACK_LOGO = `${SITE_URL}/assets/images/favicon.jpg`;
+import { getImageUrl, getLogoUrl, getGalleryImages, FALLBACK_IMAGE, FALLBACK_LOGO } from "@/lib/listingHelpers";
+import { getApiBase } from "@/lib/api";
 
 const BusinessListingContent = ({
   categorySlug = "",
@@ -42,30 +37,6 @@ const BusinessListingContent = ({
   const isCategoryPage = !!categoryName;
   const skipScrollOnPageChange = useRef(true);
   const listingsSectionRef = useRef(null);
-
-  const getImageUrl = (path, fallback = FALLBACK_IMAGE) => {
-    if (!path) return fallback;
-    const cleanPath = String(path).replace(/^\/+/, "");
-    if (cleanPath.startsWith("http")) return cleanPath;
-    if (cleanPath.startsWith("storage/")) return `${SITE_URL}/${cleanPath}`;
-    if (cleanPath.startsWith("business/gallery/")) return `${STORAGE_URL}/${cleanPath}`;
-    if (cleanPath.startsWith("business/logo/")) return `${STORAGE_URL}/${cleanPath}`;
-    return `${STORAGE_URL}/business/gallery/${cleanPath}`;
-  };
-
-  const getLogoUrl = (item) => {
-    if (!item.logo) return FALLBACK_LOGO;
-    const cleanLogo = String(item.logo).replace(/^\/+/, "");
-    if (cleanLogo.startsWith("http")) return cleanLogo;
-    if (cleanLogo.startsWith("storage/")) return `${SITE_URL}/${cleanLogo}`;
-    if (cleanLogo.startsWith("business/")) return `${STORAGE_URL}/${cleanLogo}`;
-    return `${STORAGE_URL}/${cleanLogo}`;
-  };
-
-  const getGalleryImages = (item) => {
-    if (!item.gallery || !Array.isArray(item.gallery)) return [];
-    return item.gallery;
-  };
 
   const changePage = (pageNumber) => {
     skipScrollOnPageChange.current = false;
@@ -103,7 +74,7 @@ const BusinessListingContent = ({
     try {
       setLoading(true);
 
-      const url = `${API_URL}/listings?q=${encodeURIComponent(
+      const url = `${getApiBase()}/listings?q=${encodeURIComponent(
         searchValue
       )}&sort=${sortValue}&page=${pageValue}&category_slug=${categorySlug}&city=${encodeURIComponent(
         cityValue

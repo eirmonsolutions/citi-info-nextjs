@@ -12,6 +12,7 @@ import {
   apiFetch,
   clearToken,
   ensureCsrfCookie,
+  fetchSessionProfile,
   getBackendBase,
   getToken,
   parseAuthUser,
@@ -35,7 +36,7 @@ export function AuthProvider({ children }) {
         await ensureCsrfCookie();
       }
 
-      const data = await apiFetch("/auth/profile");
+      const data = await fetchSessionProfile();
       const profileUser = parseAuthUser(data);
       setUser(profileUser);
     } catch (error) {
