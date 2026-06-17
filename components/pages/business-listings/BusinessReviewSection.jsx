@@ -7,6 +7,12 @@ import { apiFetch, resolveCsrfToken } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { getBackendLoginUrl } from "@/lib/authUrls";
 import { getUserDisplayName } from "@/lib/userDisplay";
+import { getLogoUrl } from "@/lib/listingHelpers";
+
+const MIN_REVIEW_CHARS = 10;
+const REVIEW_TAGS = ["Quality", "Service", "Value", "Staff", "Experience"];
+const PREVIEW_LENGTH = 180;
+const RATING_ROWS = [5, 4, 3, 2, 1];
 
 function getErrorMessage(error, fallback) {
   if (!error) return fallback;
@@ -25,13 +31,120 @@ function getErrorMessage(error, fallback) {
   return error.message || fallback;
 }
 
+function formatReviewDate(value) {
+  if (!value) return "Recently";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Recently";
+
+  return date.toLocaleDateString("en-AU", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function getInitials(name) {
+  const parts = String(name || "U")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+
+  if (parts.length === 0) return "U";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+}
+
+function DisplayStars({ rating, size = 18 }) {
+  const value = Number(rating) || 0;
+
+  return (
+    <span className="reviews-display-stars">
+      {[1, 2, 3, 4, 5].map((i) => (
+        <Star
+          key={i}
+          size={size}
+          fill={i <= Math.round(value) ? "#ff6b35" : "transparent"}
+          color={i <= Math.round(value) ? "#ff6b35" : "#d1d5db"}
+        />
+      ))}
+    </span>
+  );
+}
+
+function StarRatingInput({ value, onChange }) {
+  const [hover, setHover] = useState(0);
+  const active = hover || value;
+
+  const labels = ["", "Poor", "Fair", "Good", "Very good", "Excellent"];
+
+  return (
+    <div className="reviews-star-input">
+      <div className="reviews-star-input-row">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <button
+            key={star}
+            type="button"
+            className={`reviews-star-btn ${star <= active ? "is-active" : ""}`}
+            onMouseEnter={() => setHover(star)}
+            onMouseLeave={() => setHover(0)}
+            onClick={() => onChange(star)}
+            aria-label={`${star} star${star > 1 ? "s" : ""}`}
+          >
+            <Star size={34} strokeWidth={1.5} />
+          </button>
+        ))}
+        <span className="reviews-star-label">
+          {active ? labels[active] : "Select your rating"}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function ReviewCard({ review }) {
+  const [expanded, setExpanded] = useState(false);
+  const text = review.review || review.comment || "";
+  const isLong = text.length > PREVIEW_LENGTH;
+  const displayText =
+    !isLong || expanded ? text : `${text.slice(0, PREVIEW_LENGTH).trim()}...`;
+
+  return (
+    <article className="reviews-list-card">
+      <div className="reviews-list-card-head">
+        <div className="reviews-avatar">{getInitials(review.name)}</div>
+        <div className="reviews-list-card-meta">
+          <strong className="reviews-author">{review.name || "User"}</strong>
+          <div className="reviews-list-card-sub">
+            <DisplayStars rating={review.rating} size={14} />
+            <span className="reviews-date">{formatReviewDate(review.created_at)}</span>
+          </div>
+        </div>
+      </div>
+
+      <p className="reviews-list-text">{displayText}</p>
+
+      {isLong && (
+        <button
+          type="button"
+          className="reviews-read-more"
+          onClick={() => setExpanded((prev) => !prev)}
+        >
+          {expanded ? "Show less" : "Read more"}
+        </button>
+      )}
+    </article>
+  );
+}
+
 const BusinessReviewSection = ({ listing }) => {
   const { user, isAuthenticated, loading: authLoading } = useAuth();
 
   const [reviews, setReviews] = useState(listing?.reviews || []);
   const [loading, setLoading] = useState(false);
+  const [hoverTag, setHoverTag] = useState("");
   const [form, setForm] = useState({
-    rating: "",
+    rating: 0,
     review: "",
   });
 
@@ -39,7 +152,10 @@ const BusinessReviewSection = ({ listing }) => {
     setReviews(listing?.reviews || []);
   }, [listing?.id, listing?.reviews]);
 
-  const ratingRows = [5, 4, 3, 2, 1];
+  const location = [listing?.city_rel?.name, listing?.state_rel?.name]
+    .filter(Boolean)
+    .join(", ");
+
   const totalReviews = reviews.length;
 
   const avgRating = useMemo(() => {
@@ -53,19 +169,27 @@ const BusinessReviewSection = ({ listing }) => {
     return (total / totalReviews).toFixed(1);
   }, [reviews, totalReviews]);
 
-  const getRatingCount = (rate) => {
-    return reviews.filter((review) => Number(review.rating) === rate).length;
-  };
+  const getRatingCount = (rate) =>
+    reviews.filter((review) => Number(review.rating) === rate).length;
 
   const getRatingPercent = (rate) => {
-    if (totalReviews === 0) return "0%";
-    return `${(getRatingCount(rate) / totalReviews) * 100}%`;
+    if (totalReviews === 0) return 0;
+    return Math.round((getRatingCount(rate) / totalReviews) * 100);
   };
 
-  const handleChange = (e) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value,
+  const charCount = form.review.trim().length;
+  const charProgress = Math.min((charCount / MIN_REVIEW_CHARS) * 100, 100);
+  const canSubmit =
+    form.rating > 0 && charCount >= MIN_REVIEW_CHARS && !loading;
+
+  const handleTagClick = (tag) => {
+    const snippet = `${tag}: `;
+    setForm((prev) => {
+      if (prev.review.includes(snippet)) return prev;
+      return {
+        ...prev,
+        review: prev.review ? `${prev.review.trim()}\n${snippet}` : snippet,
+      };
     });
   };
 
@@ -82,15 +206,15 @@ const BusinessReviewSection = ({ listing }) => {
       return;
     }
 
-    if (!form.rating || !form.review) {
-      Swal.fire("Required", "Please fill all required fields.", "warning");
+    if (!form.rating || !form.review.trim()) {
+      Swal.fire("Required", "Please add a rating and your review.", "warning");
       return;
     }
 
-    if (form.review.trim().length < 10) {
+    if (form.review.trim().length < MIN_REVIEW_CHARS) {
       Swal.fire(
         "Review too short",
-        "Your review must be at least 10 characters.",
+        `Your review must be at least ${MIN_REVIEW_CHARS} characters.`,
         "warning"
       );
       return;
@@ -115,10 +239,11 @@ const BusinessReviewSection = ({ listing }) => {
         name: getUserDisplayName(user),
         rating: Number(form.rating),
         review: form.review.trim(),
+        created_at: new Date().toISOString(),
       };
 
       setReviews((prev) => [newReview, ...prev]);
-      setForm({ rating: "", review: "" });
+      setForm({ rating: 0, review: "" });
 
       Swal.fire(
         "Success",
@@ -142,121 +267,146 @@ const BusinessReviewSection = ({ listing }) => {
   };
 
   return (
-    <div className="listing-review-area">
-      <div className="review-header">
-        <h2 className="heading-title">Reviews</h2>
-      </div>
+    <div className="listing-review-area reviews-unified">
+      <h2 className="reviews-main-title">Reviews</h2>
 
-      <div className="row g-4 pb-3 mb-3">
-        <div className="col-sm-5 col-md-3 col-lg-4">
-          <div className="review-score-card">
-            <h3>{avgRating}</h3>
-
-            <div className="review-stars">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <Star key={i} size={30} fill="#ff8a2a" color="#ff8a2a" />
-              ))}
-            </div>
-
-            <p>
-              {totalReviews} {totalReviews === 1 ? "review" : "reviews"}
-            </p>
-          </div>
+      <div className="reviews-summary">
+        <div className="reviews-score-box">
+          <div className="reviews-score-value">{avgRating}</div>
+          <DisplayStars rating={avgRating} size={22} />
+          <p className="reviews-score-count">
+            {totalReviews} {totalReviews === 1 ? "review" : "reviews"}
+          </p>
         </div>
 
-        <div className="col-sm-7 col-md-9 col-lg-8">
-          <div className="review-rating-list">
-            {ratingRows.map((rate) => (
-              <div className="review-rating-row" key={rate}>
-                <div className="rating-label">
-                  <span>{rate}</span>
-                  <Star size={24} fill="#ff8a2a" color="#ff8a2a" />
-                </div>
-
-                <div className="rating-line">
-                  <span style={{ width: getRatingPercent(rate) }}></span>
-                </div>
-
-                <div className="rating-count">{getRatingCount(rate)}</div>
+        <div className="reviews-breakdown">
+          {RATING_ROWS.map((rate) => (
+            <div className="reviews-breakdown-row" key={rate}>
+              <span className="reviews-breakdown-label">
+                {rate} <Star size={14} fill="#ff6b35" color="#ff6b35" />
+              </span>
+              <div className="reviews-breakdown-bar">
+                <span style={{ width: `${getRatingPercent(rate)}%` }} />
               </div>
-            ))}
-          </div>
+              <span className="reviews-breakdown-count">{getRatingCount(rate)}</span>
+            </div>
+          ))}
         </div>
       </div>
 
-      {totalReviews > 0 ? (
-        reviews.map((review) => (
-          <div className="review-item" key={review.id}>
-            <strong>{review.name || "User"}</strong>
-            <p>{review.review}</p>
-          </div>
-        ))
-      ) : (
-        <p className="text-muted mb-3">
-          No reviews yet. Be the first one to review.
-        </p>
-      )}
+      <div className="reviews-divider" />
 
-      <div className="listing-review-form-wrap">
-        <h3 className="heading-title h5 mb-3">Write a review</h3>
+      <div className="reviews-compose-block">
+        <div className="reviews-business-chip">
+          <img
+            src={getLogoUrl(listing)}
+            alt={listing?.business_name || "Business"}
+            className="reviews-business-logo"
+          />
+          <div>
+            <h3 className="reviews-business-name">
+              {listing?.business_name || "Business"}
+            </h3>
+            {location && <p className="reviews-business-location">{location}</p>}
+          </div>
+        </div>
+
+        <h3 className="reviews-block-title">How would you rate your experience?</h3>
+        <StarRatingInput
+          value={form.rating}
+          onChange={(rating) => setForm((prev) => ({ ...prev, rating }))}
+        />
 
         {authLoading ? (
-          <p className="text-muted mb-0">Checking login status...</p>
+          <p className="reviews-muted">Checking login status...</p>
         ) : isAuthenticated ? (
-          <form className="review-form review-form-inline" onSubmit={submitReview}>
-            <div className="form-group">
-              <label htmlFor="review-rating">
-                Rating <span>*</span>
-              </label>
-              <select
-                id="review-rating"
-                name="rating"
-                value={form.rating}
-                onChange={handleChange}
-                required
+          <form className="reviews-form" onSubmit={submitReview}>
+            <h3 className="reviews-block-title">Tell us about your experience</h3>
+            <p className="reviews-tag-hint">A few things to consider in your review</p>
+
+            {/* <div className="reviews-tags">
+              {REVIEW_TAGS.map((tag) => (
+                <button
+                  key={tag}
+                  type="button"
+                  className={`reviews-tag ${hoverTag === tag ? "is-hover" : ""}`}
+                  onMouseEnter={() => setHoverTag(tag)}
+                  onMouseLeave={() => setHoverTag("")}
+                  onClick={() => handleTagClick(tag)}
+                >
+                  {tag}
+                </button>
+              ))}
+            </div> */}
+
+            <textarea
+              id="review-text"
+              name="review"
+              value={form.review}
+              onChange={(e) =>
+                setForm((prev) => ({ ...prev, review: e.target.value }))
+              }
+              placeholder="Start your review..."
+              rows={6}
+              className="reviews-textarea"
+            />
+
+            <div className="reviews-form-footer">
+              <div className="reviews-char-progress">
+                <svg viewBox="0 0 36 36" className="reviews-char-ring">
+                  <path
+                    className="reviews-char-ring-bg"
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                  />
+                  <path
+                    className="reviews-char-ring-fill"
+                    strokeDasharray={`${charProgress}, 100`}
+                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                  />
+                </svg>
+                <span className="reviews-char-hint">
+                  Reviews need to be at least {MIN_REVIEW_CHARS} characters
+                </span>
+              </div>
+
+              <button
+                type="submit"
+                className="reviews-post-btn"
+                disabled={!canSubmit}
               >
-                <option value="" disabled>
-                  Select rating
-                </option>
-                <option value="5">5 Star</option>
-                <option value="4">4 Star</option>
-                <option value="3">3 Star</option>
-                <option value="2">2 Star</option>
-                <option value="1">1 Star</option>
-              </select>
+                {loading ? "Posting..." : "Post Review"}
+              </button>
             </div>
-
-            <div className="form-group">
-              <label htmlFor="review-text">
-                Review <span>*</span>
-              </label>
-              <textarea
-                id="review-text"
-                name="review"
-                value={form.review}
-                onChange={handleChange}
-                placeholder="Share your experience (minimum 10 characters)."
-                required
-                minLength={10}
-                rows={4}
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="submit-review-btn"
-              disabled={loading}
-            >
-              {loading ? "Submitting..." : "Submit review"}
-            </button>
           </form>
         ) : (
-          <div className="review-login-prompt">
-            <p className="mb-3">You must be logged in to write a review.</p>
-            <a href={getBackendLoginUrl()} className="add-review-btn add-review-login">
-              Login to write a review
+          <div className="reviews-login-box">
+            <p>You must be logged in to write a review.</p>
+            <a href={getBackendLoginUrl()} className="reviews-post-btn">
+              Login to post review
             </a>
           </div>
+        )}
+      </div>
+
+      <div className="reviews-divider" />
+
+      <div className="reviews-list-section">
+        <h3 className="reviews-block-title">
+          {totalReviews > 0
+            ? `All reviews (${totalReviews})`
+            : "Customer reviews"}
+        </h3>
+
+        {totalReviews > 0 ? (
+          <div className="reviews-list">
+            {reviews.map((review) => (
+              <ReviewCard key={review.id} review={review} />
+            ))}
+          </div>
+        ) : (
+          <p className="reviews-muted">
+            No reviews yet. Be the first to share your experience.
+          </p>
         )}
       </div>
     </div>
