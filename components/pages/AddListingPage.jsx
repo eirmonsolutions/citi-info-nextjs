@@ -723,11 +723,10 @@ const AddListingPage = () => {
                 <div className="container wizard-body">
                     {message && (
                         <div
-                            className={`alert mb-3 ${
-                                message.includes("successfully")
-                                    ? "alert-success"
-                                    : "alert-danger"
-                            }`}
+                            className={`alert mb-3 ${message.includes("successfully")
+                                ? "alert-success"
+                                : "alert-danger"
+                                }`}
                             role="alert"
                         >
                             {message}
@@ -917,12 +916,31 @@ const AddListingPage = () => {
                                             <input
                                                 type="file"
                                                 hidden
-                                                accept="image/*"
+                                                accept=".png,.jpg,.jpeg,.webp,.svg,image/png,image/jpeg,image/webp,image/svg+xml"
                                                 onChange={(e) => {
                                                     clearFieldError("business_logo");
-                                                    setLogoFile(
-                                                        e.target.files?.[0] || null
-                                                    );
+
+                                                    const file = e.target.files?.[0];
+
+                                                    if (!file) return;
+
+                                                    const allowedTypes = [
+                                                        "image/png",
+                                                        "image/jpg",
+                                                        "image/jpeg",
+                                                        "image/webp",
+                                                        "image/svg+xml",
+                                                    ];
+
+                                                    if (!allowedTypes.includes(file.type)) {
+                                                        setLogoFile(null);
+                                                        e.target.value = "";
+
+                                                        alert("Only PNG, JPG, JPEG, WEBP and SVG files are allowed.");
+                                                        return;
+                                                    }
+
+                                                    setLogoFile(file);
                                                 }}
                                             />
                                         </label>
@@ -995,8 +1013,12 @@ const AddListingPage = () => {
                                             type="tel"
                                             name="phone"
                                             value={formData.phone}
-                                            onChange={handleInput}
+                                            onChange={(e) => {
+                                                e.target.value = e.target.value.replace(/[^0-9 ]/g, "");
+                                                handleInput(e);
+                                            }}
                                             placeholder="0412 345 678"
+                                            inputMode="numeric"
                                         />
                                         {fieldErrors.phone && (
                                             <p className="field-error">
@@ -1017,6 +1039,8 @@ const AddListingPage = () => {
                                             value={formData.email}
                                             onChange={handleInput}
                                             placeholder="business@example.com"
+                                            autoComplete="email"
+                                            pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
                                         />
                                         {fieldErrors.email && (
                                             <p className="field-error">
@@ -1042,8 +1066,12 @@ const AddListingPage = () => {
                                             type="tel"
                                             name="alternate_phone"
                                             value={formData.alternate_phone}
-                                            onChange={handleInput}
-                                            placeholder="0412 987 654"
+                                            onChange={(e) => {
+                                                e.target.value = e.target.value.replace(/[^0-9]/g, "");
+                                                handleInput(e);
+                                            }}
+                                            placeholder="0412987654"
+                                            inputMode="numeric"
                                         />
                                     </div>
                                 </div>
@@ -1420,7 +1448,7 @@ const AddListingPage = () => {
                                                 const img = rawImg
                                                     ? rawImg.startsWith("http")
                                                         ? rawImg
-                                                        : `http://127.0.0.1:8000/storage/${rawImg}`
+                                                        : `${API_URL}/storage/${rawImg}`
                                                     : "";
 
                                                 return (
@@ -1463,7 +1491,7 @@ const AddListingPage = () => {
                                                 const img = rawImg
                                                     ? rawImg.startsWith("http")
                                                         ? rawImg
-                                                        : `http://127.0.0.1:8000/storage/${rawImg}`
+                                                        : `${API_URL}/storage/${rawImg}`
                                                     : "";
 
                                                 return (
@@ -1558,10 +1586,32 @@ const AddListingPage = () => {
                                                 <input
                                                     name="business_gallery[]"
                                                     type="file"
-                                                    accept="image/*"
+                                                    accept=".png,.jpg,.jpeg,.webp,.svg,image/png,image/jpeg,image/webp,image/svg+xml"
                                                     multiple
                                                     hidden
-                                                    onChange={handleGalleryChange}
+                                                    onChange={(e) => {
+                                                        const files = Array.from(e.target.files || []);
+
+                                                        const allowedTypes = [
+                                                            "image/png",
+                                                            "image/jpg",
+                                                            "image/jpeg",
+                                                            "image/webp",
+                                                            "image/svg+xml",
+                                                        ];
+
+                                                        const validFiles = files.filter((file) =>
+                                                            allowedTypes.includes(file.type)
+                                                        );
+
+                                                        if (validFiles.length !== files.length) {
+                                                            e.target.value = "";
+                                                            alert("Only PNG, JPG, JPEG, WEBP and SVG files are allowed.");
+                                                            return;
+                                                        }
+
+                                                        handleGalleryChange(e);
+                                                    }}
                                                 />
                                             )}
                                         </label>
