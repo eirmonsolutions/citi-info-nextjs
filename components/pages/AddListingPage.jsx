@@ -2006,7 +2006,7 @@ const AddListingPage = () => {
                                                         const img = rawImg
                                                             ? rawImg.startsWith("http")
                                                                 ? rawImg
-                                                                : `http://127.0.0.1:8000/storage/${rawImg}`
+                                                                : `${API_URL}/storage/${rawImg}`
                                                             : "";
 
                                                         return (
