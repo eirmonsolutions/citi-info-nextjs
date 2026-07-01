@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { LayoutGrid, List, Clock, Star, MapPin } from "lucide-react";
+import { LayoutGrid, List, Star, MapPin } from "lucide-react";
+import OpenStatusBadge from "@/components/listings/OpenStatusBadge";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -175,6 +176,7 @@ const BusinessListingContent = ({
                 <option value="name_desc">Name (Z-A)</option>
                 <option value="date_asc">Date Oldest</option>
                 <option value="date_desc">Date Newest</option>
+                <option value="most_reviewed">Most Reviewed</option>
               </select>
 
               <div className="view-switcher">
@@ -279,10 +281,7 @@ const BusinessListingContent = ({
                           <WishlistButton businessId={item.id} />
                         </div>
 
-                        <div className="status-badge open close">
-                          <Clock size={22} />
-                          Open Now
-                        </div>
+                        <OpenStatusBadge listing={item} />
                       </div>
 
                       <div className="front-listing-content">

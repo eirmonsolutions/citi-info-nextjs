@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Clock, Star, MapPin } from "lucide-react";
+import { Star, MapPin } from "lucide-react";
+import OpenStatusBadge from "@/components/listings/OpenStatusBadge";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay } from "swiper/modules";
 import "swiper/css";
@@ -80,10 +81,7 @@ export default function ListingCard({ item, onWishlistChange }) {
             />
           </div>
 
-          <div className="status-badge open close">
-            <Clock size={22} />
-            Open Now
-          </div>
+          <OpenStatusBadge listing={item} />
         </div>
 
         <div className="front-listing-content">

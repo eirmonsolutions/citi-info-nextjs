@@ -67,6 +67,26 @@ export function getBackendBase(): string {
   return getApiBase().replace(/\/api\/?$/, "");
 }
 
+/** Sanctum CSRF — use Next.js proxy on local dev (CSP-safe). */
+function getSanctumBase(): string {
+  const configured = API_URL?.trim();
+
+  if (typeof window !== "undefined" && configured?.startsWith("/")) {
+    try {
+      const frontendHost = window.location.hostname;
+      const backendHost = new URL(getBackendBase()).hostname;
+
+      if (frontendHost === backendHost || frontendHost === "localhost") {
+        return window.location.origin;
+      }
+    } catch {
+      // fall through
+    }
+  }
+
+  return getBackendBase();
+}
+
 /** Web route — same session as api.citiinfo.com.au/login (not /api/*). */
 export async function fetchSessionProfile() {
   const res = await fetch(`${getBackendBase()}/auth/session-profile`, {
@@ -151,7 +171,7 @@ export async function resolveCsrfToken(): Promise<string | null> {
 }
 
 export async function ensureCsrfCookie() {
-  await fetch(`${getBackendBase()}/sanctum/csrf-cookie`, {
+  await fetch(`${getSanctumBase()}/sanctum/csrf-cookie`, {
     method: "GET",
     credentials: "include",
     headers: {

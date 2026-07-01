@@ -2,6 +2,10 @@
 
 import React, { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import {
+  getListingOpenStatus,
+  getListingTodayKey,
+} from "@/lib/businessHours";
 
 const BusinessHourSection = ({ listing }) => {
   const [openHours, setOpenHours] = useState(false);
@@ -43,24 +47,15 @@ const BusinessHourSection = ({ listing }) => {
     }
   });
 
-  const todayKey = new Date()
-    .toLocaleDateString("en-US", { weekday: "long" })
-    .toLowerCase();
+  const todayKey = getListingTodayKey(listing);
+  const openStatus = getListingOpenStatus(listing);
 
-  const todayRow = hoursByDay[todayKey];
-
-  const isClosedToday =
-    !todayRow || Number(todayRow?.is_closed) === 1;
-
-  const closeStr = !isClosedToday
-    ? formatTime(todayRow?.close_time)
-    : "";
-
-  const topLabel = isClosedToday
-    ? "Closed"
-    : closeStr
-    ? `Open · Closes ${closeStr}`
-    : "Open";
+  const topLabel = openStatus?.detail_label || "Closed";
+  const statusClass = openStatus?.is_open
+    ? "is-open"
+    : openStatus?.is_lunch
+    ? "is-lunch"
+    : "is-closed";
 
   return (
     <div className="listing-business-hour">
@@ -74,19 +69,11 @@ const BusinessHourSection = ({ listing }) => {
           aria-expanded={openHours}
         >
           <div className="bh-left">
-            
-
             <span className="bh-today">
               {todayKey.charAt(0).toUpperCase() + todayKey.slice(1)}
             </span>
 
-            <span
-              className={`bh-status ${
-                isClosedToday ? "is-closed" : "is-open"
-              }`}
-            >
-              {topLabel}
-            </span>
+            <span className={`bh-status ${statusClass}`}>{topLabel}</span>
           </div>
 
           <span className="bh-caret" aria-hidden="true">

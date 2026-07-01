@@ -137,7 +137,7 @@ function ReviewCard({ review }) {
   );
 }
 
-const BusinessReviewSection = ({ listing }) => {
+const BusinessReviewSection = ({ listing, onReviewsChange }) => {
   const { user, isAuthenticated, loading: authLoading } = useAuth();
 
   const [reviews, setReviews] = useState(listing?.reviews || []);
@@ -149,8 +149,18 @@ const BusinessReviewSection = ({ listing }) => {
   });
 
   useEffect(() => {
-    setReviews(listing?.reviews || []);
-  }, [listing?.id, listing?.reviews]);
+    const nextReviews = listing?.reviews || [];
+    setReviews(nextReviews);
+    onReviewsChange?.(nextReviews);
+  }, [listing?.id, listing?.reviews, onReviewsChange]);
+
+  const updateReviews = (updater) => {
+    setReviews((prev) => {
+      const next = typeof updater === "function" ? updater(prev) : updater;
+      onReviewsChange?.(next);
+      return next;
+    });
+  };
 
   const location = [listing?.city_rel?.name, listing?.state_rel?.name]
     .filter(Boolean)
@@ -242,7 +252,7 @@ const BusinessReviewSection = ({ listing }) => {
         created_at: new Date().toISOString(),
       };
 
-      setReviews((prev) => [newReview, ...prev]);
+      updateReviews((prev) => [newReview, ...prev]);
       setForm({ rating: 0, review: "" });
 
       Swal.fire(

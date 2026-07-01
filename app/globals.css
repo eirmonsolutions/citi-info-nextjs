@@ -1073,6 +1073,14 @@ section.popular-categories-details-area {
   color: #16a34a;
 }
 
+.status-badge.closed {
+  color: #dc2626;
+}
+
+.status-badge.lunch {
+  color: #d97706;
+}
+
 .status-badge {
   position: absolute;
   bottom: 16px;

@@ -17,15 +17,12 @@ import BusinessReviewSection from "./BusinessReviewSection";
 import BusinessContactFormSection from "./BusinessContactFormSection";
 import BusinessListingDetailSkeleton from "./BusinessListingDetailSkeleton";
 import { fetchListingBySlug } from "@/lib/fetchListingBySlug";
-
-const STORAGE_URL =
-  process.env.NEXT_PUBLIC_STORAGE_URL || "http://127.0.0.1:8000/storage";
-
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL || "http://127.0.0.1:8000";
+import { getLogoUrl, getRating, getReviewCount } from "@/lib/listingHelpers";
+import { getApiBase } from "@/lib/api";
 
 const BusinessListingsDetail = ({ slug }) => {
   const [listing, setListing] = useState(null);
+  const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [loadError, setLoadError] = useState("");
@@ -52,6 +49,7 @@ const BusinessListingsDetail = ({ slug }) => {
 
         if (matchedListing) {
           setListing(matchedListing);
+          setReviews(matchedListing.reviews || []);
           setNotFound(false);
         } else {
           setListing(null);
@@ -86,10 +84,9 @@ const BusinessListingsDetail = ({ slug }) => {
 
     const trackView = async () => {
       try {
-        await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/listings/${slug}/view`,
-          { method: "POST" }
-        );
+        await fetch(`${getApiBase()}/listings/${encodeURIComponent(slug)}/view`, {
+          method: "POST",
+        });
       } catch (error) {
         console.error("View tracking failed:", error);
       }
@@ -136,15 +133,7 @@ const BusinessListingsDetail = ({ slug }) => {
     );
   }
 
-  const logoPath = listing.logo ? String(listing.logo) : "";
-
-  const logoUrl = logoPath
-    ? logoPath.startsWith("http")
-      ? logoPath
-      : logoPath.startsWith("storage/")
-        ? `${SITE_URL}/${logoPath}`
-        : `${STORAGE_URL}/${logoPath}`
-    : "/assets/img/default-logo.png";
+  const logoUrl = getLogoUrl(listing);
 
   const location = [
     listing.city_rel?.name,
@@ -154,37 +143,9 @@ const BusinessListingsDetail = ({ slug }) => {
     .filter(Boolean)
     .join(" , ");
 
-  const getRating = (item) => {
-    if (item.average_rating) return Number(item.average_rating).toFixed(1);
-
-    if (item.reviews_avg_rating) return Number(item.reviews_avg_rating).toFixed(1);
-
-    if (item.reviews?.length > 0) {
-      const total = item.reviews.reduce(
-        (sum, review) => sum + Number(review.rating || 0),
-        0
-      );
-
-      return (total / item.reviews.length).toFixed(1);
-    }
-
-    return "0.0";
-  };
-
-  const getReviewCount = (item) => {
-    if (item.reviews_count !== undefined && item.reviews_count !== null) {
-      return Number(item.reviews_count);
-    }
-
-    if (item.reviews?.length > 0) {
-      return item.reviews.length;
-    }
-
-    return 0;
-  };
-
-  const rating = getRating(listing);
-  const reviewCount = getReviewCount(listing);
+  const listingWithReviews = { ...listing, reviews };
+  const rating = getRating(listingWithReviews);
+  const reviewCount = getReviewCount(listingWithReviews);
 
   return (
     <>
@@ -213,8 +174,8 @@ const BusinessListingsDetail = ({ slug }) => {
                       </span>
                       <span className="profile-review-count">
                         {reviewCount > 0
-                          ? ` (${reviewCount} ratings)`
-                          : " (No ratings)"}
+                          ? ` (${reviewCount} reviews)`
+                          : " (No reviews)"}
                       </span>
                     </li>
 
@@ -256,7 +217,10 @@ const BusinessListingsDetail = ({ slug }) => {
 
               <FAQSection listing={listing} />
 
-              <BusinessReviewSection listing={listing} />
+              <BusinessReviewSection
+                listing={listing}
+                onReviewsChange={setReviews}
+              />
             </div>
 
             <div className="col-lg-12 col-xl-4">

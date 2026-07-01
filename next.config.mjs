@@ -2,6 +2,55 @@
 const apiProxyTarget =
   process.env.API_PROXY_TARGET || process.env.NEXT_PUBLIC_API_URL;
 
+const isDev = process.env.NODE_ENV !== "production";
+
+const connectSrc = [
+  "'self'",
+  "https://api.citiinfo.com.au",
+  "https://www.google-analytics.com",
+  "https://analytics.google.com",
+];
+
+const imgSrc = [
+  "'self'",
+  "data:",
+  "blob:",
+  "https://api.citiinfo.com.au",
+  "https://www.google-analytics.com",
+];
+
+const formAction = ["'self'", "https://api.citiinfo.com.au"];
+
+if (isDev) {
+  for (const host of ["localhost", "127.0.0.1"]) {
+    connectSrc.push(
+      `http://${host}:3000`,
+      `http://${host}:8000`,
+      `ws://${host}:3000`,
+    );
+    imgSrc.push(`http://${host}:8000`, `http://${host}:3000`);
+    formAction.push(`http://${host}:8000`, `http://${host}:3000`);
+  }
+}
+
+const cspDirectives = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com",
+  "style-src 'self' 'unsafe-inline'",
+  `img-src ${imgSrc.join(" ")}`,
+  "font-src 'self' data:",
+  `connect-src ${connectSrc.join(" ")}`,
+  "frame-src 'self'",
+  "object-src 'none'",
+  "base-uri 'self'",
+  `form-action ${formAction.join(" ")}`,
+  "frame-ancestors 'self'",
+];
+
+if (!isDev) {
+  cspDirectives.push("upgrade-insecure-requests");
+}
+
 const securityHeaders = [
   {
     key: "X-DNS-Prefetch-Control",
@@ -29,20 +78,7 @@ const securityHeaders = [
   },
   {
     key: "Content-Security-Policy",
-    value: [
-      "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com",
-      "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob: https://api.citiinfo.com.au https://www.google-analytics.com",
-      "font-src 'self' data:",
-      "connect-src 'self' https://api.citiinfo.com.au https://www.google-analytics.com https://analytics.google.com",
-      "frame-src 'self'",
-      "object-src 'none'",
-      "base-uri 'self'",
-      "form-action 'self' https://api.citiinfo.com.au",
-      "frame-ancestors 'self'",
-      "upgrade-insecure-requests",
-    ].join("; "),
+    value: cspDirectives.join("; "),
   },
 ];
 
