@@ -202,7 +202,7 @@ export default function Banner() {
                     </button>
 
                     <button onClick={() => handleTagSearch("Salon")}>
-                        Salon
+                        Beauty Salons & Spas
                     </button>
 
                 </div>

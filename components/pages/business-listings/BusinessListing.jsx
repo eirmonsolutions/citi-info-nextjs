@@ -66,6 +66,8 @@ const BusinessListingContent = ({
     return "0.0";
   };
 
+
+
   const fetchListings = async (
     searchValue = search,
     sortValue = sort,
@@ -222,6 +224,22 @@ const BusinessListingContent = ({
                 const hasGallery = galleryImages.length > 0;
                 const hasMultipleGallery = galleryImages.length > 1;
 
+                const reviewCount = Number(
+                  item.reviews_count ??
+                  item.review_count ??
+                  item.reviews?.length ??
+                  0
+                );
+                const firstReview =
+                  Array.isArray(item.approved_reviews) && item.approved_reviews.length > 0
+                    ? item.approved_reviews[0]
+                    : Array.isArray(item.reviews) && item.reviews.length > 0
+                    ? item.reviews[0]
+                    : null;
+
+                const firstReviewText =
+                  firstReview?.review || firstReview?.message || firstReview?.comment || firstReview?.text || "";
+
                 return (
                   <div
                     className={
@@ -303,6 +321,13 @@ const BusinessListingContent = ({
                               <div className="rating">
                                 <Star size={18} />
                                 <span>{getRating(item)}</span>
+
+                                <span className="profile-review-count">
+                                  {reviewCount > 0
+                                    ? `(${reviewCount} ${reviewCount === 1 ? "review" : "reviews"
+                                    })`
+                                    : "(No reviews)"}
+                                </span>
                               </div>
                             </div>
 
@@ -321,19 +346,20 @@ const BusinessListingContent = ({
                             />
 
                             <div className="testimonial-text">
-                              {item.reviews?.length > 0 ? (
+                              {firstReviewText?.trim() ? (
                                 <>
-                                  <p>"{item.reviews[0].comment}"</p>
+                                  <p>"{firstReviewText}"</p>
+
                                   <span className="testimonial-author">
-                                    {item.reviews[0].name}
+                                    {firstReview?.name || "Customer"}
                                   </span>
                                 </>
                               ) : (
                                 <>
                                   <p>
-                                    "No reviews yet — be the first to share your
-                                    experience with {item.business_name}."
+                                    "No reviews yet — be the first to share your experience."
                                   </p>
+
                                   <span className="testimonial-author">
                                     No reviews yet
                                   </span>

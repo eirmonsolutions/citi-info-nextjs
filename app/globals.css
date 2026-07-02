@@ -1185,12 +1185,16 @@ section.popular-categories-details-area {
 }
 
 .testimonial-text p {
-  font-style: italic;
-  font-size: 12px;
-  line-height: 19px;
-  font-weight: 500;
   color: #344054;
   margin-bottom: 5px;
+  font-size: 12px;
+  font-style: italic;
+  font-weight: 500;
+  line-height: 19px;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
 }
 
 .testimonial-author {
