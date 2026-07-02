@@ -1274,81 +1274,90 @@ const AddListingPage = () => {
 
                                             {day.enabled ? (
                                                 <div className="time-area">
-                                                    <input
-                                                        type="time"
-                                                        value={day.start}
-                                                        onChange={(e) =>
-                                                            updateHour(
-                                                                dayKey,
-                                                                "start",
-                                                                e.target.value
-                                                            )
-                                                        }
-                                                    />
+                                                    <div className="time-wrapper-1">
+                                                        <input
+                                                            type="time"
+                                                            value={day.start}
+                                                            onChange={(e) =>
+                                                                updateHour(
+                                                                    dayKey,
+                                                                    "start",
+                                                                    e.target.value
+                                                                )
+                                                            }
+                                                        />
 
-                                                    <span>to</span>
+                                                        <span>to</span>
 
-                                                    <input
-                                                        type="time"
-                                                        value={day.end}
-                                                        onChange={(e) =>
-                                                            updateHour(
-                                                                dayKey,
-                                                                "end",
-                                                                e.target.value
-                                                            )
-                                                        }
-                                                    />
+                                                        <input
+                                                            type="time"
+                                                            value={day.end}
+                                                            onChange={(e) =>
+                                                                updateHour(
+                                                                    dayKey,
+                                                                    "end",
+                                                                    e.target.value
+                                                                )
+                                                            }
+                                                        />
+                                                    </div>
 
                                                     <label className="lunch-toggle">
-                                                        <span className="switch small">
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={day.lunch}
-                                                                onChange={(e) =>
-                                                                    updateHour(
-                                                                        dayKey,
-                                                                        "lunch",
-                                                                        e.target.checked
-                                                                    )
-                                                                }
-                                                            />
-                                                            <span></span>
-                                                        </span>
-                                                        Lunch
-                                                    </label>
+                                                            <span className="switch small">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={day.lunch}
+                                                                    onChange={(e) =>
+                                                                        updateHour(
+                                                                            dayKey,
+                                                                            "lunch",
+                                                                            e.target.checked
+                                                                        )
+                                                                    }
+                                                                />
+                                                                <span></span>
+                                                            </span>
+                                                            Lunch
+                                                        </label>
 
-                                                    {day.lunch && (
-                                                        <>
-                                                            <input
-                                                                type="time"
-                                                                value={day.lunch_start}
-                                                                onChange={(e) =>
-                                                                    updateHour(
-                                                                        dayKey,
-                                                                        "lunch_start",
-                                                                        e.target.value
-                                                                    )
-                                                                }
-                                                                className="lunch-time-input"
-                                                            />
+                                                    <div className="time-wrapper-2">
+                                                        
 
-                                                            <span>to</span>
+                                                        {day.lunch && (
+                                                            <>
+                                                                <input
+                                                                    type="time"
+                                                                    value={day.lunch_start}
+                                                                    onChange={(e) =>
+                                                                        updateHour(
+                                                                            dayKey,
+                                                                            "lunch_start",
+                                                                            e.target.value
+                                                                        )
+                                                                    }
+                                                                    className="lunch-time-input"
+                                                                />
 
-                                                            <input
-                                                                type="time"
-                                                                value={day.lunch_end}
-                                                                onChange={(e) =>
-                                                                    updateHour(
-                                                                        dayKey,
-                                                                        "lunch_end",
-                                                                        e.target.value
-                                                                    )
-                                                                }
-                                                                className="lunch-time-input"
-                                                            />
-                                                        </>
-                                                    )}
+                                                                <span>to</span>
+
+                                                                <input
+                                                                    type="time"
+                                                                    value={day.lunch_end}
+                                                                    onChange={(e) =>
+                                                                        updateHour(
+                                                                            dayKey,
+                                                                            "lunch_end",
+                                                                            e.target.value
+                                                                        )
+                                                                    }
+                                                                    className="lunch-time-input"
+                                                                />
+                                                            </>
+                                                        )}
+                                                    </div>
+
+
+
                                                 </div>
                                             ) : (
                                                 <div className="closed-text">Closed</div>

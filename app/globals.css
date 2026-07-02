@@ -3662,9 +3662,17 @@ section.cities-area {
 
 
 
+.time-wrapper-1 {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
 
-
-
+.time-wrapper-2 {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
 
 
 
@@ -3682,6 +3690,31 @@ section.cities-area {
 
 /* Tablet */
 @media (max-width: 991px) {
+
+  .review-grid {
+    grid-template-columns: 1fr;
+}
+
+  .time-wrapper-1,
+  .time-wrapper-2 {
+    gap: 5px;
+  }
+
+  .wizard-body {
+    padding: 42px 20px 32px;
+  }
+
+  button.logo-remove-btn {
+    right: 0;
+  }
+
+  .logo-preview-box {
+    text-align: center;
+  }
+
+  .logo-preview-box img {
+    max-width: 220px;
+  }
 
   .city-img img,
   .city-grid.city-grid-normal-height .city-img img {
