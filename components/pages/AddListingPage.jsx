@@ -326,7 +326,7 @@ const AddListingPage = () => {
                 }));
             }
         } catch (error) {
-            console.error(error);
+            
         }
     };
 
@@ -336,7 +336,7 @@ const AddListingPage = () => {
             const data = await res.json();
             setStates(data.data || data || []);
         } catch (error) {
-            console.error(error);
+            
         }
     };
 
@@ -346,7 +346,7 @@ const AddListingPage = () => {
             const data = await res.json();
             setCities(data.data || data || []);
         } catch (error) {
-            console.error(error);
+            
         }
     };
 
@@ -677,7 +677,7 @@ const AddListingPage = () => {
                 confirmButtonColor: "#087df2",
             });
         } catch (error) {
-            console.error(error);
+            
             Swal.fire({
                 icon: "error",
                 title: "Something Went Wrong",

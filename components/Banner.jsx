@@ -41,14 +41,10 @@ export default function Banner() {
                     setLocation(city);
 
                 } catch (error) {
-                    console.log(error);
+
                 }
 
             },
-
-            (error) => {
-                console.log(error);
-            }
 
         );
 
