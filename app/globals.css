@@ -3648,6 +3648,14 @@ section.cities-area {
   .listing-list-view .front-listing-img {
     height: 240px;
   }
+
+  .logo img {
+    max-width: 120px;
+  }
+
+  .section-heading h2 {
+    font-size: 20px;
+  }
 }
 
 

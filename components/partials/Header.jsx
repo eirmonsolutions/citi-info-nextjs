@@ -153,9 +153,7 @@ export default function Header() {
                 <a href={getBackendLoginUrl()} className="btn-login">
                   Login
                 </a>
-                <a href={getBackendRegisterUrl()} className="btn-register">
-                  Register
-                </a>
+                
               </div>
             )}
 
